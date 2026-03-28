@@ -1,0 +1,338 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: address_map\n"
+"POT-Creation-Date: 2026-03-28 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+#. Page title; also used as button label in list views
+#: address_map/address_map/page/address_map/address_map.js
+#: address_map/public/js/address_map.bundle.js
+msgid "Address Map"
+msgstr ""
+
+#. Button injected into list-view page actions
+#: address_map/public/js/address_map.bundle.js
+msgid "Open in Address Map"
+msgstr ""
+
+#. Menu item in the ⋮ page menu
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Toggle Sidebar"
+msgstr ""
+
+#. Tooltip on the reload action icon button
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Refresh"
+msgstr ""
+
+#. Label above the view selector in the sidebar
+#: address_map/address_map/page/address_map/address_map.js
+msgid "View"
+msgstr ""
+
+#. Placeholder option in the view drop-down
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Select a view\u2026"
+msgstr ""
+
+#. Sidebar section heading
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Saved Filters"
+msgstr ""
+
+#. Toggle button label (collapsed state)
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Show Saved"
+msgstr ""
+
+#. Toggle button label (expanded state)
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Hide Saved"
+msgstr ""
+
+#. Sidebar section heading for the map legend
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Legend"
+msgstr ""
+
+#. Placeholder for the save-filter name input
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Save filters as\u2026"
+msgstr ""
+
+#. Confirmation dialog text when deleting a saved filter
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Remove this saved filter?"
+msgstr ""
+
+#. Label on the filter popover button
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Filter"
+msgstr ""
+
+#. Tooltip on the clear-filters (×) button
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Clear all filters"
+msgstr ""
+
+#. Loading indicator text
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Loading\u2026"
+msgstr ""
+
+#. Alert shown after unassigning a document from the current user
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Unassigned"
+msgstr ""
+
+#. Alert shown after assigning a document to the current user
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Assigned to you"
+msgstr ""
+
+#. Tooltip on the current-position marker
+#: address_map/address_map/page/address_map/address_map.js
+msgid "You are here"
+msgstr ""
+
+#. Alert shown when no views are configured in settings
+#: address_map/address_map/page/address_map/address_map.js
+msgid "No views configured in Address Map Settings."
+msgstr ""
+
+#. Alert shown when the selected view has no geocoded addresses
+#: address_map/address_map/page/address_map/address_map.js
+msgid "No geocoded addresses found for this view."
+msgstr ""
+
+#. Alert after map data is loaded; {0} = number of markers
+#: address_map/address_map/page/address_map/address_map.js
+msgid "{0} address(es) shown"
+msgstr ""
+
+#. Popup context-menu button to unassign the current user
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Unassign"
+msgstr ""
+
+#. Popup context-menu button to assign document to the current user
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Assign to me"
+msgstr ""
+
+#. Alert after geocode-all job is enqueued; {0} = count
+#: address_map/address_map/doctype/address_map_settings/address_map_settings.js
+msgid "{0} address(es) queued for geocoding."
+msgstr ""
+
+#. Geocode-all confirmation dialog
+#: address_map/address_map/doctype/address_map_settings/address_map_settings.js
+msgid "This will geocode all addresses that do not have coordinates yet. The job runs in the background and may take several minutes. Continue?"
+msgstr ""
+
+#. Permission error
+#: address_map/api.py
+msgid "Not Permitted"
+msgstr ""
+
+#. Validation error; {0} = duplicate view name
+#: address_map/address_map/doctype/address_map_settings/address_map_settings.py
+msgid "Duplicate view name \"{0}\" in Views list. Each view must have a unique Name."
+msgstr ""
+
+#. Validation error for level-2 traversal
+#: address_map/api.py
+msgid "Invalid map path: via_field is required for level-2 traversal"
+msgstr ""
+
+#. Validation error; {0} = doctype, {1} = via doctype
+#: address_map/api.py
+msgid "Invalid map path: {0} via {1} is not configured"
+msgstr ""
+
+#. Validation error; {0} = doctype, {1} = fieldname, {2} = target doctype
+#: address_map/api.py
+msgid "Invalid map path: {0}.{1} does not link to {2}"
+msgstr ""
+
+#. DocType and field labels
+#: address_map/address_map/doctype/address_map_settings/address_map_settings.json
+msgid "Address Map Settings"
+msgstr ""
+
+msgid "Views"
+msgstr ""
+
+msgid "Default View"
+msgstr ""
+
+msgid "Enter the Name of the view as configured in the Views list."
+msgstr ""
+
+msgid "Views shown in the map selector. Each row must have a unique Name. Set Via DocType when the DocType does not hold the address directly (e.g. Sales Invoice → Customer)."
+msgstr ""
+
+msgid "Rules"
+msgstr ""
+
+msgid "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order per view; the first match wins."
+msgstr ""
+
+msgid "Popup Fields"
+msgstr ""
+
+msgid "Add rows per view to include extra fields in the map marker popup. Fields are shown below the address block."
+msgstr ""
+
+msgid "Fixed Pins"
+msgstr ""
+
+msgid "Pinned Addresses"
+msgstr ""
+
+msgid "Markers"
+msgstr ""
+
+msgid "Default Marker"
+msgstr ""
+
+msgid "Current Position Marker"
+msgstr ""
+
+msgid "Geocoding"
+msgstr ""
+
+msgid "Nominatim URL"
+msgstr ""
+
+msgid "Base URL of the Nominatim search endpoint (no query string)."
+msgstr ""
+
+msgid "User-Agent"
+msgstr ""
+
+msgid "HTTP User-Agent header sent to Nominatim. Required by the Nominatim usage policy."
+msgstr ""
+
+msgid "Bulk Geocoding"
+msgstr ""
+
+msgid "Geocode All Addresses"
+msgstr ""
+
+msgid "Queue a background job that geocodes every Address that has no coordinates yet."
+msgstr ""
+
+#: address_map/address_map/doctype/address_map_view/address_map_view.json
+msgid "Name shown in the map view selector and used in rules. Must be unique across all rows."
+msgstr ""
+
+msgid "Via DocType"
+msgstr ""
+
+msgid "The DocType that holds the address (e.g. Customer, Supplier). Leave blank if this DocType itself holds the address."
+msgstr ""
+
+msgid "Popup Line 1 Field"
+msgstr ""
+
+msgid "Popup Line 2 Field"
+msgstr ""
+
+msgid "Allow Assign in Popup"
+msgstr ""
+
+msgid "Show Assign / Unassign button in the marker popup for this view."
+msgstr ""
+
+msgid "Fieldname whose value is shown as the bold first line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
+msgstr ""
+
+msgid "Fieldname whose value is shown as the linked second line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
+msgstr ""
+
+#: address_map/address_map/doctype/address_map_rule/address_map_rule.json
+msgid "View Name"
+msgstr ""
+
+msgid "Must match the Name of a view exactly as configured in the Views list."
+msgstr ""
+
+msgid "Field"
+msgstr ""
+
+msgid "Field to evaluate, e.g. <code>status</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>."
+msgstr ""
+
+msgid "Operator"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+
+msgid "Use <code>{me}</code> as a placeholder for the current user's email, e.g. <code>%{me}%</code> with <code>like</code>. For <code>in</code> / <code>not in</code> separate multiple values with commas."
+msgstr ""
+
+msgid "Marker Color"
+msgstr ""
+
+msgid "Marker Shape"
+msgstr ""
+
+msgid "Hide Marker"
+msgstr ""
+
+msgid "Do not render a marker for matching documents."
+msgstr ""
+
+msgid "Legend Label"
+msgstr ""
+
+msgid "If set, this rule appears as a legend entry below the map with its color and shape."
+msgstr ""
+
+#: address_map/address_map/doctype/address_map_popup_field/address_map_popup_field.json
+msgid "Fieldname"
+msgstr ""
+
+msgid "Label Override"
+msgstr ""
+
+msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Open the DocType form and inspect the fieldname column."
+msgstr ""
+
+msgid "Display label shown in the popup. Defaults to the field's own label when left blank."
+msgstr ""
+
+#: address_map/address_map/doctype/address_map_pin/address_map_pin.json
+msgid "Address"
+msgstr ""
+
+#. Shared labels appearing in multiple child tables
+msgid "Color"
+msgstr ""
+
+msgid "Shape"
+msgstr ""
+
+#. Custom fields on the Address DocType
+msgid "Geocoordinates"
+msgstr ""
+
+msgid "Latitude"
+msgstr ""
+
+msgid "Longitude"
+msgstr ""
+
+msgid "Geolocation"
+msgstr ""
+
+#. Used in level-2 DocType label qualification, e.g. "Issue (via Customer)"
+#: address_map/api.py
+msgid "via"
+msgstr ""
+

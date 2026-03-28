@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "creation": "2026-03-28 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "view_name",
+  "fieldname",
+  "label"
+ ],
+ "fields": [
+  {
+   "description": "Must match the Name of a view exactly as configured in the Views list.",
+   "fieldname": "view_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "View Name",
+   "reqd": 1
+  },
+  {
+   "description": "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Open the DocType form and inspect the fieldname column.",
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "reqd": 1
+  },
+  {
+   "description": "Display label shown in the popup. Defaults to the field's own label when left blank.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label Override"
+  }
+ ],
+ "idx": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Address Map",
+ "name": "Address Map Popup Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

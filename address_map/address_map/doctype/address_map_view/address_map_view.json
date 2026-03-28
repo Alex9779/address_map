@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "creation": "2026-03-28 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "display_name",
+  "doctype_name",
+  "via_doctype",
+  "popup_line1_field",
+  "popup_line2_field",
+  "allow_assign"
+ ],
+ "fields": [
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "description": "Name shown in the map view selector and used in rules. Must be unique across all rows.",
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name",
+   "reqd": 1
+  },
+  {
+   "description": "The DocType that holds the address (e.g. Customer, Supplier). Leave blank if this DocType itself holds the address.",
+   "fieldname": "via_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Via DocType",
+   "options": "DocType"
+  },
+  {
+   "description": "Fieldname whose value is shown as the bold first line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name.",
+   "fieldname": "popup_line1_field",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Popup Line 1 Field"
+  },
+  {
+   "description": "Fieldname whose value is shown as the linked second line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name.",
+   "fieldname": "popup_line2_field",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Popup Line 2 Field"
+  },
+  {
+   "default": "0",
+   "description": "Show Assign / Unassign button in the marker popup for this view.",
+   "fieldname": "allow_assign",
+   "fieldtype": "Check",
+   "label": "Allow Assign in Popup"
+  }
+ ],
+ "idx": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Address Map",
+ "name": "Address Map View",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

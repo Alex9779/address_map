@@ -1,0 +1,273 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: address_map\n"
+"POT-Creation-Date: 2026-03-28 00:00+0000\n"
+"PO-Revision-Date: 2026-03-28 00:00+0000\n"
+"Language-Team: German\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de_DE\n"
+
+msgid "Address Map"
+msgstr "Adresskarte"
+
+msgid "Open in Address Map"
+msgstr "In Adresskarte öffnen"
+
+msgid "Toggle Sidebar"
+msgstr "Seitenleiste umschalten"
+
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+msgid "View"
+msgstr "Ansicht"
+
+msgid "Select a view\u2026"
+msgstr "Ansicht auswählen\u2026"
+
+msgid "Saved Filters"
+msgstr "Gespeicherte Filter"
+
+msgid "Show Saved"
+msgstr "Gespeicherte anzeigen"
+
+msgid "Hide Saved"
+msgstr "Gespeicherte ausblenden"
+
+msgid "Legend"
+msgstr "Legende"
+
+msgid "Save filters as\u2026"
+msgstr "Filter speichern als\u2026"
+
+msgid "Remove this saved filter?"
+msgstr "Diesen gespeicherten Filter entfernen?"
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Clear all filters"
+msgstr "Alle Filter löschen"
+
+msgid "Loading\u2026"
+msgstr "Laden\u2026"
+
+msgid "Unassigned"
+msgstr "Nicht zugewiesen"
+
+msgid "Assigned to you"
+msgstr "Ihnen zugewiesen"
+
+msgid "You are here"
+msgstr "Sie sind hier"
+
+msgid "No views configured in Address Map Settings."
+msgstr "Keine Ansichten in den Adresskarten-Einstellungen konfiguriert."
+
+msgid "No geocoded addresses found for this view."
+msgstr "Keine geokodierte Adresse für diese Ansicht gefunden."
+
+msgid "{0} address(es) shown"
+msgstr "{0} Adresse(n) angezeigt"
+
+msgid "Unassign"
+msgstr "Zuweisung aufheben"
+
+msgid "Assign to me"
+msgstr "Mir zuweisen"
+
+msgid "{0} address(es) queued for geocoding."
+msgstr "{0} Adresse(n) zur Geokodierung in die Warteschlange gestellt."
+
+msgid "This will geocode all addresses that do not have coordinates yet. The job runs in the background and may take several minutes. Continue?"
+msgstr "Alle Adressen ohne Koordinaten werden geokodiert. Der Vorgang läuft im Hintergrund und kann einige Minuten dauern. Fortfahren?"
+
+msgid "Not Permitted"
+msgstr "Keine Berechtigung"
+
+msgid "Duplicate view name \"{0}\" in Views list. Each view must have a unique Name."
+msgstr "Doppelter Ansichtsname \"{0}\" in der Ansichtsliste. Jede Ansicht muss einen eindeutigen Namen haben."
+
+msgid "Invalid map path: via_field is required for level-2 traversal"
+msgstr "Ungültiger Kartenpfad: via_field ist für Level-2-Traversierung erforderlich"
+
+msgid "Invalid map path: {0} via {1} is not configured"
+msgstr "Ungültiger Kartenpfad: {0} über {1} ist nicht konfiguriert"
+
+msgid "Invalid map path: {0}.{1} does not link to {2}"
+msgstr "Ungültiger Kartenpfad: {0}.{1} verweist nicht auf {2}"
+
+#. DocType and field labels
+msgid "Address Map Settings"
+msgstr "Adresskarten-Einstellungen"
+
+msgid "Views"
+msgstr "Ansichten"
+
+msgid "Default View"
+msgstr "Standard-Ansicht"
+
+msgid "Enter the Name of the view as configured in the Views list."
+msgstr "Den Namen der Ansicht eingeben, wie in der Ansichtsliste konfiguriert."
+
+msgid "Views shown in the map selector. Each row must have a unique Name. Set Via DocType when the DocType does not hold the address directly (e.g. Sales Invoice → Customer)."
+msgstr "Im Kartenauswähler angezeigte Ansichten. Jede Zeile muss einen eindeutigen Namen haben. Via DocType setzen, wenn der DocType die Adresse nicht direkt enthält (z.B. Ausgangsrechnung → Kunde)."
+
+msgid "Rules"
+msgstr "Regeln"
+
+msgid "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order per view; the first match wins."
+msgstr "Eine Markerfarbe (und optional Form) basierend auf einem Feldwert anwenden. Regeln werden in Reihenfolge pro Ansicht ausgewertet; die erste Übereinstimmung gewinnt."
+
+msgid "Popup Fields"
+msgstr "Popup-Felder"
+
+msgid "Add rows per view to include extra fields in the map marker popup. Fields are shown below the address block."
+msgstr "Zeilen pro Ansicht hinzufügen, um zusätzliche Felder im Popup des Kartenmarkers anzuzeigen. Felder werden unterhalb des Adressblocks angezeigt."
+
+msgid "Fixed Pins"
+msgstr "Feste Markierungen"
+
+msgid "Pinned Addresses"
+msgstr "Angeheftete Adressen"
+
+msgid "Markers"
+msgstr "Marker"
+
+msgid "Default Marker"
+msgstr "Standard-Marker"
+
+msgid "Current Position Marker"
+msgstr "Aktueller-Standort-Marker"
+
+msgid "Geocoding"
+msgstr "Geokodierung"
+
+msgid "Nominatim URL"
+msgstr "Nominatim-URL"
+
+msgid "Base URL of the Nominatim search endpoint (no query string)."
+msgstr "Basis-URL des Nominatim-Suchendpunkts (ohne Query-String)."
+
+msgid "User-Agent"
+msgstr "User-Agent"
+
+msgid "HTTP User-Agent header sent to Nominatim. Required by the Nominatim usage policy."
+msgstr "HTTP-User-Agent-Header, der an Nominatim gesendet wird. Gemäß der Nominatim-Nutzungsrichtlinie erforderlich."
+
+msgid "Bulk Geocoding"
+msgstr "Massen-Geokodierung"
+
+msgid "Geocode All Addresses"
+msgstr "Alle Adressen geokodieren"
+
+msgid "Queue a background job that geocodes every Address that has no coordinates yet."
+msgstr "Einen Hintergrundjob in die Warteschlange stellen, der alle Adressen ohne Koordinaten geokodiert."
+
+msgid "Name shown in the map view selector and used in rules. Must be unique across all rows."
+msgstr "Name, der im Kartenansicht-Auswähler und in Regeln verwendet wird. Muss in allen Zeilen eindeutig sein."
+
+msgid "Via DocType"
+msgstr "Über DocType"
+
+msgid "The DocType that holds the address (e.g. Customer, Supplier). Leave blank if this DocType itself holds the address."
+msgstr "Der DocType, der die Adresse enthält (z.B. Kunde, Lieferant). Leer lassen, wenn dieser DocType die Adresse selbst enthält."
+
+msgid "Popup Line 1 Field"
+msgstr "Popup-Zeile-1-Feld"
+
+msgid "Popup Line 2 Field"
+msgstr "Popup-Zeile-2-Feld"
+
+msgid "Allow Assign in Popup"
+msgstr "Zuweisen im Popup erlauben"
+
+msgid "Show Assign / Unassign button in the marker popup for this view."
+msgstr "Schaltfläche „Zuweisen / Zuweisung aufheben" im Marker-Popup dieser Ansicht anzeigen."
+
+msgid "Fieldname whose value is shown as the bold first line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
+msgstr "Feldname, dessen Wert als fettgedruckte erste Zeile des Popups angezeigt wird (z.B. <code>customer_name</code>). Leer lassen, um den Dokumentnamen zu verwenden."
+
+msgid "Fieldname whose value is shown as the linked second line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
+msgstr "Feldname, dessen Wert als verlinkte zweite Zeile des Popups angezeigt wird (z.B. <code>customer_name</code>). Leer lassen, um den Dokumentnamen zu verwenden."
+
+msgid "View Name"
+msgstr "Ansichtsname"
+
+msgid "Must match the Name of a view exactly as configured in the Views list."
+msgstr "Muss exakt mit dem Namen einer Ansicht übereinstimmen, wie in der Ansichtsliste konfiguriert."
+
+msgid "Field"
+msgstr "Feld"
+
+msgid "Field to evaluate, e.g. <code>status</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>."
+msgstr "Auszuwertendes Feld, z.B. <code>status</code>. Systemfeld-Aliase: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. <code>{me}</code> als Platzhalter für den aktuellen Benutzer verwenden, z.B. Feld <code>assigned</code>, Operator <code>like</code>, Wert <code>%{me}%</code>."
+
+msgid "Operator"
+msgstr "Operator"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "Use <code>{me}</code> as a placeholder for the current user's email, e.g. <code>%{me}%</code> with <code>like</code>. For <code>in</code> / <code>not in</code> separate multiple values with commas."
+msgstr "<code>{me}</code> als Platzhalter für die E-Mail des aktuellen Benutzers verwenden, z.B. <code>%{me}%</code> mit <code>like</code>. Für <code>in</code> / <code>not in</code> mehrere Werte mit Komma trennen."
+
+msgid "Marker Color"
+msgstr "Marker-Farbe"
+
+msgid "Marker Shape"
+msgstr "Marker-Form"
+
+msgid "Hide Marker"
+msgstr "Marker ausblenden"
+
+msgid "Do not render a marker for matching documents."
+msgstr "Keinen Marker für übereinstimmende Dokumente anzeigen."
+
+msgid "Legend Label"
+msgstr "Legendenbeschriftung"
+
+msgid "If set, this rule appears as a legend entry below the map with its color and shape."
+msgstr "Wenn gesetzt, erscheint diese Regel als Legendeneintrag unterhalb der Karte mit ihrer Farbe und Form."
+
+msgid "Fieldname"
+msgstr "Feldname"
+
+msgid "Label Override"
+msgstr "Bezeichnung überschreiben"
+
+msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Open the DocType form and inspect the fieldname column."
+msgstr "Feldname genau wie im DocType definiert (z.B. <code>customer_name</code>). Das DocType-Formular öffnen und die Feldname-Spalte prüfen."
+
+msgid "Display label shown in the popup. Defaults to the field's own label when left blank."
+msgstr "Anzeigebezeichnung im Popup. Wenn leer, wird die eigene Feldbezeichnung verwendet."
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Color"
+msgstr "Farbe"
+
+msgid "Shape"
+msgstr "Form"
+
+#. Geocoordinates section on the Address form
+msgid "Geocoordinates"
+msgstr "Geokoordinaten"
+
+msgid "Latitude"
+msgstr "Breitengrad"
+
+msgid "Longitude"
+msgstr "Längengrad"
+
+msgid "Geolocation"
+msgstr "Geolokation"
+
+msgid "via"
+msgstr "über"
+

@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "creation": "2026-03-29 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "display_name",
+  "fieldname",
+  "operator",
+  "value",
+  "color",
+  "shape",
+  "hide_marker",
+  "legend_label"
+ ],
+ "fields": [
+  {
+   "description": "Must match the Name of a view exactly as configured in the Views list.",
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "View Name",
+   "reqd": 1
+  },
+  {
+   "description": "Field to evaluate, e.g. <code>status</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>.",
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Field"
+  },
+  {
+   "default": "=",
+   "fieldname": "operator",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Operator",
+   "options": "=\n!=\n>\n<\n>=\n<=\nlike\nnot like\nin\nnot in\nis set\nis not set",
+   "reqd": 1
+  },
+  {
+   "description": "Use <code>{me}</code> as a placeholder for the current user's email, e.g. <code>%{me}%</code> with <code>like</code>. For <code>in</code> / <code>not in</code> separate multiple values with commas.",
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Value"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Marker Color"
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Select",
+   "label": "Marker Shape",
+   "options": "\nCircle\nSquare\nDiamond\nPin"
+  },
+  {
+   "description": "Do not render a marker for matching documents.",
+   "fieldname": "hide_marker",
+   "fieldtype": "Check",
+   "label": "Hide Marker"
+  },
+  {
+   "description": "If set, this rule appears as a legend entry below the map with its color and shape.",
+   "fieldname": "legend_label",
+   "fieldtype": "Data",
+   "label": "Legend Label"
+  }
+ ],
+ "idx": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-29 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Address Map",
+ "name": "Address Map Rule",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

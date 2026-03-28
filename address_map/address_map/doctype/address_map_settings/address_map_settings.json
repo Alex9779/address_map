@@ -1,0 +1,196 @@
+{
+ "actions": [],
+ "creation": "2026-03-28 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "doctypes_tab",
+  "default_doctype",
+  "doctypes",
+  "rules_section",
+  "rules",
+  "popup_section",
+  "popup_fields",
+  "pins_tab",
+  "pins",
+  "markers_tab",
+  "default_marker_section",
+  "default_marker_color",
+  "default_marker_col_break",
+  "default_marker_shape",
+  "location_section",
+  "location_color",
+  "location_col_break",
+  "location_shape",
+  "geocoding_tab",
+  "nominatim_url",
+  "nominatim_spacer",
+  "nominatim_user_agent",
+  "geocode_section",
+  "geocode_all"
+ ],
+ "fields": [
+  {
+   "fieldname": "doctypes_tab",
+   "fieldtype": "Tab Break",
+   "label": "Views"
+  },
+  {
+   "description": "Enter the Name of the view as configured in the Views list.",
+   "fieldname": "default_doctype",
+   "fieldtype": "Data",
+   "label": "Default View"
+  },
+  {
+   "fieldname": "doctypes",
+   "fieldtype": "Table",
+   "label": "Views",
+   "options": "Address Map View",
+   "description": "Views shown in the map selector. Each row must have a unique Name. Set Via DocType when the DocType does not hold the address directly (e.g. Sales Invoice \u2192 Customer)."
+  },
+  {
+   "fieldname": "rules_section",
+   "fieldtype": "Section Break",
+   "label": "Rules"
+  },
+  {
+   "description": "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order per view; the first match wins.",
+   "fieldname": "rules",
+   "fieldtype": "Table",
+   "label": "Rules",
+   "options": "Address Map Rule"
+  },
+  {
+   "fieldname": "popup_section",
+   "fieldtype": "Section Break",
+   "label": "Popup Fields"
+  },
+  {
+   "description": "Add rows per view to include extra fields in the map marker popup. Fields are shown below the address block.",
+   "fieldname": "popup_fields",
+   "fieldtype": "Table",
+   "label": "Popup Fields",
+   "options": "Address Map Popup Field"
+  },
+  {
+   "fieldname": "pins_tab",
+   "fieldtype": "Tab Break",
+   "label": "Fixed Pins"
+  },
+  {
+   "fieldname": "pins",
+   "fieldtype": "Table",
+   "label": "Pinned Addresses",
+   "options": "Address Map Pin"
+  },
+  {
+   "fieldname": "markers_tab",
+   "fieldtype": "Tab Break",
+   "label": "Markers"
+  },
+  {
+   "fieldname": "default_marker_section",
+   "fieldtype": "Section Break",
+   "label": "Default Marker"
+  },
+  {
+   "default": "#3388ff",
+   "fieldname": "default_marker_color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "default_marker_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Circle",
+   "fieldname": "default_marker_shape",
+   "fieldtype": "Select",
+   "label": "Shape",
+   "options": "Circle\nSquare\nDiamond\nPin"
+  },
+  {
+   "fieldname": "location_section",
+   "fieldtype": "Section Break",
+   "label": "Current Position Marker"
+  },
+  {
+   "default": "#4a90e2",
+   "fieldname": "location_color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "location_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Circle",
+   "fieldname": "location_shape",
+   "fieldtype": "Select",
+   "label": "Shape",
+   "options": "Circle\nSquare\nDiamond\nPin"
+  },
+  {
+   "fieldname": "geocoding_tab",
+   "fieldtype": "Tab Break",
+   "label": "Geocoding"
+  },
+  {
+   "default": "https://nominatim.openstreetmap.org/search",
+   "fieldname": "nominatim_url",
+   "fieldtype": "Data",
+   "label": "Nominatim URL",
+   "description": "Base URL of the Nominatim search endpoint (no query string)."
+  },
+  {
+   "fieldname": "nominatim_spacer",
+   "fieldtype": "HTML",
+   "options": "<div style='margin-bottom:8px'></div>"
+  },
+  {
+   "default": "address_map/0.0.1 (info@alitecs.de)",
+   "fieldname": "nominatim_user_agent",
+   "fieldtype": "Data",
+   "label": "User-Agent",
+   "description": "HTTP User-Agent header sent to Nominatim. Required by the Nominatim usage policy."
+  },
+  {
+   "fieldname": "geocode_section",
+   "fieldtype": "Section Break",
+   "label": "Bulk Geocoding"
+  },
+  {
+   "fieldname": "geocode_all",
+   "fieldtype": "Button",
+   "label": "Geocode All Addresses",
+   "description": "Queue a background job that geocodes every Address that has no coordinates yet."
+  }
+ ],
+ "idx": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-03-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Address Map",
+ "name": "Address Map Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
