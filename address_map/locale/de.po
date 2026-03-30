@@ -193,7 +193,7 @@ msgid "Address Type Priority"
 msgstr "Adresstyp-Priorität"
 
 msgid "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). Listed types are preferred first; any remaining types follow in the default Frappe order. Leave blank to use only the default order."
-msgstr "Kommagetrennte Adresstypen in Prioritätsreihenfolge (z.\u00a0B. <code>Billing, Shipping</code>). Aufgeführte Typen werden bevorzugt; alle übrigen Typen folgen in der Standard-Reihenfolge von Frappe. Leer lassen, um ausschließlich die Standard-Reihenfolge zu verwenden."
+msgstr "Kommagetrennte Adresstypen in Prioritätsreihenfolge (z. B. <code>Billing, Shipping</code>). Aufgeführte Typen werden bevorzugt; alle übrigen Typen folgen in der Standard-Reihenfolge von Frappe. Leer lassen, um ausschließlich die Standard-Reihenfolge zu verwenden."
 
 msgid "Fieldname whose value is shown as the bold first line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
 msgstr "Feldname, dessen Wert als fettgedruckte erste Zeile des Popups angezeigt wird (z.B. <code>customer_name</code>). Leer lassen, um den Dokumentnamen zu verwenden."
