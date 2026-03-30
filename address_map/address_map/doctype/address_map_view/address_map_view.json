@@ -59,7 +59,7 @@
    "label": "Allow Assign in Popup"
   },
   {
-   "description": "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). When set, only the first matching address per document is shown. Leave blank to use the default Frappe order.",
+   "description": "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). Listed types are preferred first; any remaining types follow in the default Frappe order. Leave blank to use only the default order.",
    "fieldname": "address_type_priority",
    "fieldtype": "Data",
    "label": "Address Type Priority"

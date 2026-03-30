@@ -406,17 +406,16 @@ _DEFAULT_ADDRESS_TYPE_PRIORITY: tuple[str, ...] = (
 def _pick_best_address(rows: list[_dict], priority: list[str] | None) -> list[_dict]:
 	"""Keep only one address per link_name according to the priority list.
 
-	When *priority* is set (user-configured list):
-	  Only addresses whose type appears in the list are considered.
-	  Documents with no matching address type are omitted.
-
-	When *priority* is empty (field left blank):
-	  Uses _DEFAULT_ADDRESS_TYPE_PRIORITY to pick the best type.
-	  Falls back to the very first address found if none match any default type,
-	  so every document always gets exactly one pin.
+	The effective priority is built as:
+	  1. User-configured types (from *priority*), in the given order.
+	  2. Remaining default Frappe types not already listed, in default order.
+	  3. Any other address types not covered above (unknown custom types), as
+	     a last-resort fallback so every document always gets exactly one pin.
 	"""
-	strict = bool(priority)  # True → user-configured, False → use defaults
-	effective: list[str] = priority if strict else list(_DEFAULT_ADDRESS_TYPE_PRIORITY)
+	user_list: list[str] = priority or []
+	user_set = set(user_list)
+	# Append default types not already in the user list
+	effective: list[str] = list(user_list) + [t for t in _DEFAULT_ADDRESS_TYPE_PRIORITY if t not in user_set]
 	priority_index: dict[str, int] = {t: i for i, t in enumerate(effective)}
 	best: dict[str, _dict] = {}
 	for row in rows:
@@ -424,13 +423,12 @@ def _pick_best_address(rows: list[_dict], priority: list[str] | None) -> list[_d
 		addr_type = str(row.address_type or "")
 		rank = priority_index.get(addr_type)
 		if rank is None:
-			if strict:
-				continue  # type not in user list — skip entirely
-			# non-strict: use as fallback only if we have nothing yet
+			# Unknown custom type: use as fallback only if we have nothing yet
 			if name not in best:
 				best[name] = row
 			continue
-		if name not in best or rank < priority_index.get(str(best[name].address_type or ""), len(effective)):
+		current_rank = priority_index.get(str(best[name].address_type or ""), len(effective)) if name in best else len(effective)
+		if rank < current_rank:
 			best[name] = row
 	# Return in original row order, one per link_name
 	seen: set[str] = set()

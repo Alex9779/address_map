@@ -251,7 +251,7 @@ msgstr ""
 msgid "Address Type Priority"
 msgstr ""
 
-msgid "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). When set, only the first matching address per document is shown. Leave blank to use the default Frappe order."
+msgid "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). Listed types are preferred first; any remaining types follow in the default Frappe order. Leave blank to use only the default order."
 msgstr ""
 
 msgid "Fieldname whose value is shown as the bold first line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
