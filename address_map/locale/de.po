@@ -189,6 +189,12 @@ msgstr "Zuweisen im Popup erlauben"
 msgid "Show Assign / Unassign button in the marker popup for this view."
 msgstr "Schaltfläche „Zuweisen / Zuweisung aufheben" im Marker-Popup dieser Ansicht anzeigen."
 
+msgid "Address Type Priority"
+msgstr "Adresstyp-Priorität"
+
+msgid "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). When set, only the first matching address per document is shown. Leave blank to use the default Frappe order."
+msgstr "Kommagetrennte Adresstypen in Prioritätsreihenfolge (z. B. <code>Billing, Shipping</code>). Wenn gesetzt, wird pro Dokument nur die erste übereinstimmende Adresse angezeigt. Leer lassen, um die Standard-Reihenfolge von Frappe zu verwenden."
+
 msgid "Fieldname whose value is shown as the bold first line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
 msgstr "Feldname, dessen Wert als fettgedruckte erste Zeile des Popups angezeigt wird (z.B. <code>customer_name</code>). Leer lassen, um den Dokumentnamen zu verwenden."
 

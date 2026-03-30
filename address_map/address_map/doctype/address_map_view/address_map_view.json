@@ -9,7 +9,8 @@
   "via_doctype",
   "popup_line1_field",
   "popup_line2_field",
-  "allow_assign"
+  "allow_assign",
+  "address_type_priority"
  ],
  "fields": [
   {
@@ -56,6 +57,12 @@
    "fieldname": "allow_assign",
    "fieldtype": "Check",
    "label": "Allow Assign in Popup"
+  },
+  {
+   "description": "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). When set, only the first matching address per document is shown. Leave blank to use the default Frappe order.",
+   "fieldname": "address_type_priority",
+   "fieldtype": "Data",
+   "label": "Address Type Priority"
   }
  ],
  "idx": 0,

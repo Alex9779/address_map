@@ -26,7 +26,7 @@ def get_views() -> list[dict]:
 		frappe.db.get_all(
 			"Address Map View",
 			filters={"parent": "Address Map Settings", "parentfield": "doctypes"},
-			fields=["doctype_name", "via_doctype", "display_name", "allow_assign"],
+			fields=["doctype_name", "via_doctype", "display_name", "allow_assign", "address_type_priority"],
 			order_by="idx",
 		),
 	)
@@ -43,7 +43,9 @@ def get_views() -> list[dict]:
 			if not via_field:
 				continue  # skip invalid / unresolvable paths
 		label = str(row.display_name or "").strip() or frappe._(doctype)
-		result.append({"doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": str(row.display_name or "").strip(), "allow_assign": bool(row.allow_assign)})
+		priority_raw = str(row.address_type_priority or "").strip()
+		address_type_priority = [t.strip() for t in priority_raw.split(",") if t.strip()] if priority_raw else []
+		result.append({"doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": str(row.display_name or "").strip(), "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority})
 	return result
 
 
@@ -96,12 +98,13 @@ def get_map_data(
 	popup_fields = _get_popup_fields(display_name, doctype)
 	line_fields = _get_popup_line_fields(display_name, doctype)
 	rules = _get_rules(display_name, doctype)
+	address_type_priority = _get_address_type_priority(display_name)
 
 	if via:
 		assert via_field is not None  # guaranteed by _validate_level2_path
-		features = _map_data_level2(doctype, via, via_field, allowed_names, popup_fields, line_fields, rules)
+		features = _map_data_level2(doctype, via, via_field, allowed_names, popup_fields, line_fields, rules, address_type_priority)
 	else:
-		features = _map_data_level1(doctype, allowed_names, popup_fields, line_fields, rules)
+		features = _map_data_level1(doctype, allowed_names, popup_fields, line_fields, rules, address_type_priority)
 
 	legend = [
 		{
@@ -130,7 +133,7 @@ def _find_via_field(doctype: str, via: str) -> str | None:
 	return None
 
 
-def _map_data_level1(doctype: str, allowed_names: set[str] | None = None, popup_fields: list[dict] | None = None, line_fields: dict | None = None, rules: list[_dict] | None = None) -> list[dict]:
+def _map_data_level1(doctype: str, allowed_names: set[str] | None = None, popup_fields: list[dict] | None = None, line_fields: dict | None = None, rules: list[_dict] | None = None, address_type_priority: list[str] | None = None) -> list[dict]:
 	params: dict = {"doctype": doctype}
 	name_filter = ""
 	if allowed_names is not None:
@@ -154,6 +157,7 @@ def _map_data_level1(doctype: str, allowed_names: set[str] | None = None, popup_
 			addr.pincode,
 			addr.latitude,
 			addr.longitude,
+			addr.address_type AS address_type,
 			doc_tbl.owner   AS owner,
 			doc_tbl._assign AS _assign
 		FROM `tabAddress` addr
@@ -171,6 +175,7 @@ def _map_data_level1(doctype: str, allowed_names: set[str] | None = None, popup_
 		params,
 		as_dict=True,
 	))
+	rows = _pick_best_address(rows, address_type_priority)
 	if popup_fields or line_fields:
 		_enrich_rows(rows, doctype, popup_fields, line_fields)
 	marker_map = _build_marker_map(doctype, [str(r.link_name) for r in rows], rules or [])
@@ -205,7 +210,7 @@ def _validate_level2_path(doctype: str, via: str, via_field: str | None):
 		)
 
 
-def _map_data_level2(doctype: str, via: str, via_field: str, allowed_names: set[str] | None = None, popup_fields: list[dict] | None = None, line_fields: dict | None = None, rules: list[_dict] | None = None) -> list[dict]:
+def _map_data_level2(doctype: str, via: str, via_field: str, allowed_names: set[str] | None = None, popup_fields: list[dict] | None = None, line_fields: dict | None = None, rules: list[_dict] | None = None, address_type_priority: list[str] | None = None) -> list[dict]:
 	# via_field is validated by _validate_level2_path before this is called.
 	# Table names and the via_field column name are built from validated metadata —
 	# not from raw user input — so f-string interpolation is safe here.
@@ -232,6 +237,7 @@ def _map_data_level2(doctype: str, via: str, via_field: str, allowed_names: set[
 			addr.pincode,
 			addr.latitude,
 			addr.longitude,
+			addr.address_type AS address_type,
 			doc.owner       AS owner,
 			doc._assign     AS _assign
 		FROM `tab{doctype}` doc
@@ -249,6 +255,7 @@ def _map_data_level2(doctype: str, via: str, via_field: str, allowed_names: set[
 		params,
 		as_dict=True,
 	))
+	rows = _pick_best_address(rows, address_type_priority)
 	if popup_fields or line_fields:
 		_enrich_rows(rows, doctype, popup_fields, line_fields)
 	marker_map = _build_marker_map(doctype, [str(r.link_name) for r in rows], rules or [])
@@ -367,6 +374,73 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 				else:
 					marker_map[name] = {"color": color, "shape": shape or None}
 	return marker_map
+
+
+def _get_address_type_priority(display_name: str | None) -> list[str]:
+	"""Return the ordered address type list for the given view (from the comma-separated field).
+
+	Returns an empty list when no priority is configured, which signals _pick_best_address
+	to fall back to the default Frappe address type order.
+	"""
+	if not display_name:
+		return []
+	rows = frappe.get_all(
+		"Address Map View",
+		filters={"parent": "Address Map Settings", "parentfield": "doctypes", "display_name": display_name},
+		fields=["address_type_priority"],
+		limit=1,
+	)
+	if not rows:
+		return []
+	raw = str(rows[0].get("address_type_priority") or "").strip()
+	return [t.strip() for t in raw.split(",") if t.strip()]
+
+
+# Default address type order taken from the Frappe Address doctype Select options.
+_DEFAULT_ADDRESS_TYPE_PRIORITY: tuple[str, ...] = (
+	"Billing", "Shipping", "Office", "Personal", "Plant", "Postal",
+	"Shop", "Subsidiary", "Warehouse", "Current", "Permanent", "Other",
+)
+
+
+def _pick_best_address(rows: list[_dict], priority: list[str] | None) -> list[_dict]:
+	"""Keep only one address per link_name according to the priority list.
+
+	When *priority* is set (user-configured list):
+	  Only addresses whose type appears in the list are considered.
+	  Documents with no matching address type are omitted.
+
+	When *priority* is empty (field left blank):
+	  Uses _DEFAULT_ADDRESS_TYPE_PRIORITY to pick the best type.
+	  Falls back to the very first address found if none match any default type,
+	  so every document always gets exactly one pin.
+	"""
+	strict = bool(priority)  # True → user-configured, False → use defaults
+	effective: list[str] = priority if strict else list(_DEFAULT_ADDRESS_TYPE_PRIORITY)
+	priority_index: dict[str, int] = {t: i for i, t in enumerate(effective)}
+	best: dict[str, _dict] = {}
+	for row in rows:
+		name = str(row.link_name or "")
+		addr_type = str(row.address_type or "")
+		rank = priority_index.get(addr_type)
+		if rank is None:
+			if strict:
+				continue  # type not in user list — skip entirely
+			# non-strict: use as fallback only if we have nothing yet
+			if name not in best:
+				best[name] = row
+			continue
+		if name not in best or rank < priority_index.get(str(best[name].address_type or ""), len(effective)):
+			best[name] = row
+	# Return in original row order, one per link_name
+	seen: set[str] = set()
+	result: list[_dict] = []
+	for row in rows:
+		name = str(row.link_name or "")
+		if name not in seen and best.get(name) is row:
+			seen.add(name)
+			result.append(row)
+	return result
 
 
 def _get_popup_line_fields(display_name: str | None, doctype: str) -> dict:
