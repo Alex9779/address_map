@@ -37,8 +37,12 @@ def get_views() -> list[dict]:
 		via = str(row.via_doctype or "").strip() or None
 		if not doctype:
 			continue
+		if not frappe.has_permission(doctype, "read"):
+			continue
 		via_field = None
 		if via:
+			if not frappe.has_permission(via, "read"):
+				continue
 			via_field = _find_via_field(doctype, via)
 			if not via_field:
 				continue  # skip invalid / unresolvable paths
