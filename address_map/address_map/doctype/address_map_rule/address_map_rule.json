@@ -23,7 +23,7 @@
    "reqd": 1
   },
   {
-   "description": "Field to evaluate, e.g. <code>status</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>.",
+   "description": "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link field, e.g. <code>customer.territory</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>.",
    "fieldname": "fieldname",
    "fieldtype": "Data",
    "in_list_view": 1,

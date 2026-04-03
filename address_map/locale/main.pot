@@ -270,7 +270,7 @@ msgstr ""
 msgid "Field"
 msgstr ""
 
-msgid "Field to evaluate, e.g. <code>status</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>."
+msgid "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link field, e.g. <code>customer.territory</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>."
 msgstr ""
 
 msgid "Operator"
@@ -307,7 +307,7 @@ msgstr ""
 msgid "Label Override"
 msgstr ""
 
-msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Open the DocType form and inspect the fieldname column."
+msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document, e.g. <code>customer.territory</code>. Open the DocType form and inspect the fieldname column."
 msgstr ""
 
 msgid "Display label shown in the popup. Defaults to the field's own label when left blank."

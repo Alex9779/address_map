@@ -293,11 +293,35 @@ def _get_rules(display_name: str | None, doctype: str) -> list[_dict]:
 	safe: list[_dict] = []
 	for row in rows:
 		hide = bool(row.get("hide_marker"))
+		raw_fn = str(row.fieldname or "").strip()
+		op = str(row.operator or "").strip()
+
+		# Dot-notation: traverse a Link field (e.g. "customer.territory")
+		if "." in raw_fn:
+			parts = raw_fn.split(".", 1)
+			link_field, linked_docfield = parts[0].strip(), parts[1].strip()
+			if not link_field or not linked_docfield:
+				continue
+			link_meta_field = meta.get_field(link_field)
+			if not link_meta_field or link_meta_field.fieldtype != "Link" or not link_meta_field.options:
+				continue
+			linked_doctype = link_meta_field.options
+			if not frappe.get_meta(linked_doctype).get_field(linked_docfield):
+				continue
+			if not hide and (not op or op not in _allowed_ops):
+				continue
+			row.is_linked = True
+			row.link_field = link_field
+			row.linked_doctype = linked_doctype
+			row.linked_fieldname = linked_docfield
+			safe.append(row)
+			continue
+
+		# Regular fieldname (no dot)
 		if hide:
 			safe.append(row)  # hide rules need no field/op validation
 			continue
-		fn = _resolve_fieldname(str(row.fieldname or "").strip())
-		op = str(row.operator or "").strip()
+		fn = _resolve_fieldname(raw_fn)
 		if not fn or not op or op not in _allowed_ops:
 			continue
 		if fn not in _system_fields and not meta.get_field(fn):
@@ -332,41 +356,82 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 		if not unresolved:
 			break
 		hide = bool(rule.get("hide_marker"))
-		fn = _resolve_fieldname(str(rule.fieldname or "").strip())
 		op = str(rule.operator or "").strip()
 		val = str(rule.value or "").strip()
 		color = str(rule.color or "").strip()
 		shape = str(rule.shape or "").strip()
-		if not hide and (not fn or not color):
-			continue
-		try:
-			# Normalise operator/value to what frappe.db.get_all expects
-			if op == "is set":
-				op, val = "is", "set"
-			elif op == "is not set":
-				op, val = "is", "not set"
-			elif op in ("in", "not in"):
-				val = [v.strip() for v in val.split(",") if v.strip()]  # type: ignore[assignment]
-			# {me} placeholder → current session user
-			if isinstance(val, str) and "{me}" in val:
-				val = val.replace("{me}", frappe.session.user or "")
 
-			if fn and op:
-				filter_entry: list | None = [fn, op, val]
-			else:
-				filter_entry = None
-			if filter_entry is not None:
-				matched = set(cast(list[str], frappe.db.get_all(
-					doctype,
-					filters=[["name", "in", unresolved], filter_entry],  # type: ignore[arg-type]
-					pluck="name",
-				)))
-			elif hide:
-				matched = set(unresolved)  # no condition on a hide rule → hide all
-			else:
+		if rule.get("is_linked"):
+			# Dot-notation rule: two-step query via a Link field
+			link_field = str(rule.get("link_field") or "")
+			linked_doctype = str(rule.get("linked_doctype") or "")
+			linked_fn = str(rule.get("linked_fieldname") or "")
+			if not hide and not color:
 				continue
-		except Exception:
-			continue
+			try:
+				# Normalise operator/value
+				if op == "is set":
+					op, val = "is", "set"
+				elif op == "is not set":
+					op, val = "is", "not set"
+				elif op in ("in", "not in"):
+					val = [v.strip() for v in val.split(",") if v.strip()]  # type: ignore[assignment]
+				if isinstance(val, str) and "{me}" in val:
+					val = val.replace("{me}", frappe.session.user or "")
+
+				if link_field and linked_doctype and linked_fn and op:
+					linked_matched = cast(list[str], frappe.db.get_all(
+						linked_doctype,
+						filters=[[linked_fn, op, val]],  # type: ignore[arg-type]
+						pluck="name",
+					))
+					if linked_matched:
+						matched = set(cast(list[str], frappe.db.get_all(
+							doctype,
+							filters=[["name", "in", unresolved], [link_field, "in", linked_matched]],  # type: ignore[arg-type]
+							pluck="name",
+						)))
+					else:
+						matched = set()
+				elif hide:
+					matched = set(unresolved)  # no condition on a hide rule → hide all
+				else:
+					continue
+			except Exception:
+				continue
+		else:
+			fn = _resolve_fieldname(str(rule.fieldname or "").strip())
+			if not hide and (not fn or not color):
+				continue
+			try:
+				# Normalise operator/value to what frappe.db.get_all expects
+				if op == "is set":
+					op, val = "is", "set"
+				elif op == "is not set":
+					op, val = "is", "not set"
+				elif op in ("in", "not in"):
+					val = [v.strip() for v in val.split(",") if v.strip()]  # type: ignore[assignment]
+				# {me} placeholder → current session user
+				if isinstance(val, str) and "{me}" in val:
+					val = val.replace("{me}", frappe.session.user or "")
+
+				if fn and op:
+					filter_entry: list | None = [fn, op, val]
+				else:
+					filter_entry = None
+				if filter_entry is not None:
+					matched = set(cast(list[str], frappe.db.get_all(
+						doctype,
+						filters=[["name", "in", unresolved], filter_entry],  # type: ignore[arg-type]
+						pluck="name",
+					)))
+				elif hide:
+					matched = set(unresolved)  # no condition on a hide rule → hide all
+				else:
+					continue
+			except Exception:
+				continue
+
 		for name in matched:
 			if name not in marker_map:
 				if hide:
@@ -482,6 +547,32 @@ def _get_popup_fields(display_name: str | None, doctype: str) -> list[dict]:
 		lbl = str(row.get("label") or "").strip()
 		if not fn:
 			continue
+
+		# Dot-notation: traverse a Link field (e.g. "customer.territory")
+		if "." in fn:
+			parts = fn.split(".", 1)
+			link_field, linked_docfield = parts[0].strip(), parts[1].strip()
+			if not link_field or not linked_docfield:
+				continue
+			link_meta_field = meta.get_field(link_field)
+			if not link_meta_field or link_meta_field.fieldtype != "Link" or not link_meta_field.options:
+				continue
+			linked_doctype = link_meta_field.options
+			linked_field = frappe.get_meta(linked_doctype).get_field(linked_docfield)
+			if not linked_field or linked_field.fieldtype in _POPUP_SKIP_TYPES:
+				continue
+			safe.append({
+				"fieldname": fn,
+				"label": lbl or linked_field.label or fn,
+				"fieldtype": linked_field.fieldtype,
+				"is_linked": True,
+				"link_field": link_field,
+				"linked_doctype": linked_doctype,
+				"linked_docfield": linked_docfield,
+			})
+			continue
+
+		# Regular fieldname (no dot)
 		field = meta.get_field(fn)
 		if not field or field.fieldtype in _POPUP_SKIP_TYPES:
 			continue
@@ -494,30 +585,78 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 	names = [str(r.link_name) for r in rows if r.link_name]
 	if not names:
 		return
-	fieldnames: list[str] = [f["fieldname"] for f in (popup_fields or [])]
+
+	# Separate regular and linked (dot-notation) popup fields
+	regular_popup = [f for f in (popup_fields or []) if not f.get("is_linked")]
+	linked_popup = [f for f in (popup_fields or []) if f.get("is_linked")]
+
+	# Columns to fetch from the main doctype: regular popup fieldnames + line fields +
+	# link_field columns required by linked popup fields
+	main_fieldnames: list[str] = [f["fieldname"] for f in regular_popup]
 	for key in ("popup_line1_field", "popup_line2_field"):
 		fn = (line_fields or {}).get(key)
-		if fn and fn not in fieldnames:
-			fieldnames.append(fn)
-	if not fieldnames:
-		return
-	docs = cast(
-		list[_dict],
-		frappe.get_all(
-			doctype,
-			filters=[["name", "in", names]],
-			fields=["name"] + fieldnames,
-		),
-	)
-	doc_map = {str(d.name): d for d in docs}
+		if fn and fn not in main_fieldnames:
+			main_fieldnames.append(fn)
+	for f in linked_popup:
+		lf = f["link_field"]
+		if lf not in main_fieldnames:
+			main_fieldnames.append(lf)
+
+	doc_map: dict[str, _dict] = {}
+	if main_fieldnames:
+		docs = cast(
+			list[_dict],
+			frappe.get_all(
+				doctype,
+				filters=[["name", "in", names]],
+				fields=["name"] + main_fieldnames,
+			),
+		)
+		doc_map = {str(d.name): d for d in docs}
+
+	# Enrich regular popup fields and line fields
 	for row in rows:
 		extra = doc_map.get(str(row.link_name or ""), _dict())
-		for f in (popup_fields or []):
+		for f in regular_popup:
 			row[f"_extra_{f['fieldname']}"] = extra.get(f["fieldname"], "")
 		for key, prefix in (("popup_line1_field", "_popup_line1"), ("popup_line2_field", "_popup_line2")):
 			fn = (line_fields or {}).get(key)
 			if fn:
 				row[prefix] = extra.get(fn, "")
+
+	# Enrich linked popup fields: group by (link_field, linked_doctype) for efficient batch fetching
+	if linked_popup and doc_map:
+		groups: dict[tuple[str, str], list[dict]] = {}
+		for f in linked_popup:
+			group_key = (f["link_field"], f["linked_doctype"])
+			if group_key not in groups:
+				groups[group_key] = []
+			groups[group_key].append(f)
+
+		for (link_field, linked_doctype), fields in groups.items():
+			# Collect unique link values present across all rows
+			link_values: set[str] = set()
+			for row in rows:
+				lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
+				if lv:
+					link_values.add(lv)
+			if not link_values:
+				continue
+			linked_fieldnames = [f["linked_docfield"] for f in fields]
+			linked_docs = cast(
+				list[_dict],
+				frappe.get_all(
+					linked_doctype,
+					filters=[["name", "in", list(link_values)]],
+					fields=["name"] + linked_fieldnames,
+				),
+			)
+			linked_doc_map = {str(d.name): d for d in linked_docs}
+			for row in rows:
+				lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
+				linked_data = linked_doc_map.get(lv, _dict()) if lv else _dict()
+				for f in fields:
+					row[f"_extra_{f['fieldname']}"] = linked_data.get(f["linked_docfield"], "")
 
 
 def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None, line_fields: dict | None = None, marker_map: dict | None = None) -> dict:
