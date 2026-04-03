@@ -552,7 +552,7 @@ border-radius:2px;
 		const via = selected.data("via") || null;
 		const via_field = selected.data("via-field") || null;
 		const display_name = selected.data("display-name") || null;
-		const allow_assign = selected.data("allow-assign") !== "0";
+		const allow_assign = parseInt(selected.data("allow-assign")) !== 0;
 		const doctype_label = selected.text().trim();
 		const filters = this.filter_group ? JSON.stringify(this.filter_group.get_filters()) : null;
 
