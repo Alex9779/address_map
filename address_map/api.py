@@ -756,7 +756,7 @@ def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None
 
 	popup_html = (
 		f'<strong>{escape_html(line1)}</strong><br>'
-		f'<a href="/app/{frappe.scrub(doctype)}/{urllib.parse.quote(link_name)}" target="_blank">'
+		f'<a href="/app/{frappe.scrub(doctype).replace("_", "-")}/{urllib.parse.quote(link_name)}" target="_blank">'
 		f'{escape_html(line2)}</a>'
 		f'<hr style="margin:4px 0">{address_html}'
 	)
