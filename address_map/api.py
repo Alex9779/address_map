@@ -511,7 +511,11 @@ def _pick_best_address(rows: list[_dict], priority: list[str] | None) -> list[_d
 
 
 def _get_popup_line_fields(display_name: str | None, doctype: str) -> dict:
-	"""Return validated popup_line1_field / popup_line2_field for the given view."""
+	"""Return validated popup_line1_field / popup_line2_field for the given view.
+
+	Supports dot-notation (e.g. "customer.customer_name") to traverse a single
+	Link field on the source doctype.
+	"""
 	if not display_name:
 		return {}
 	rows = frappe.get_all(
@@ -527,8 +531,30 @@ def _get_popup_line_fields(display_name: str | None, doctype: str) -> dict:
 	result: dict = {}
 	for key in ("popup_line1_field", "popup_line2_field"):
 		fn = str(row.get(key) or "").strip()
-		if fn and meta.get_field(fn):
-			result[key] = fn
+		if not fn:
+			continue
+		if "." in fn:
+			# Dot-notation: link_field.linked_docfield
+			link_field, linked_docfield = fn.split(".", 1)
+			link_field, linked_docfield = link_field.strip(), linked_docfield.strip()
+			if not link_field or not linked_docfield:
+				continue
+			link_meta_field = meta.get_field(link_field)
+			if not link_meta_field or link_meta_field.fieldtype != "Link" or not link_meta_field.options:
+				continue
+			linked_doctype = link_meta_field.options
+			if not frappe.get_meta(linked_doctype).get_field(linked_docfield):
+				continue
+			result[key] = {
+				"fieldname": fn,
+				"is_linked": True,
+				"link_field": link_field,
+				"linked_doctype": linked_doctype,
+				"linked_docfield": linked_docfield,
+			}
+		else:
+			if meta.get_field(fn):
+				result[key] = {"fieldname": fn, "is_linked": False}
 	return result
 
 
@@ -598,9 +624,23 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 	# link_field columns required by linked popup fields
 	main_fieldnames: list[str] = [f["fieldname"] for f in regular_popup]
 	for key in ("popup_line1_field", "popup_line2_field"):
-		fn = (line_fields or {}).get(key)
-		if fn and fn not in main_fieldnames:
-			main_fieldnames.append(fn)
+		line_cfg = (line_fields or {}).get(key)
+		if not line_cfg:
+			continue
+		if isinstance(line_cfg, dict):
+			# new dict format
+			if line_cfg.get("is_linked"):
+				lf = line_cfg["link_field"]
+				if lf not in main_fieldnames:
+					main_fieldnames.append(lf)
+			else:
+				fn = line_cfg["fieldname"]
+				if fn not in main_fieldnames:
+					main_fieldnames.append(fn)
+		else:
+			# legacy plain string
+			if line_cfg not in main_fieldnames:
+				main_fieldnames.append(line_cfg)
 	for f in linked_popup:
 		lf = f["link_field"]
 		if lf not in main_fieldnames:
@@ -624,9 +664,14 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 		for f in regular_popup:
 			row[f"_extra_{f['fieldname']}"] = extra.get(f["fieldname"], "")
 		for key, prefix in (("popup_line1_field", "_popup_line1"), ("popup_line2_field", "_popup_line2")):
-			fn = (line_fields or {}).get(key)
-			if fn:
-				row[prefix] = extra.get(fn, "")
+			line_cfg = (line_fields or {}).get(key)
+			if not line_cfg:
+				continue
+			if isinstance(line_cfg, dict) and not line_cfg.get("is_linked"):
+				row[prefix] = extra.get(line_cfg["fieldname"], "")
+			elif isinstance(line_cfg, str):
+				# legacy plain string
+				row[prefix] = extra.get(line_cfg, "")
 
 	# Enrich linked popup fields: group by (link_field, linked_doctype) for efficient batch fetching
 	if linked_popup and doc_map:
@@ -661,6 +706,35 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 				linked_data = linked_doc_map.get(lv, _dict()) if lv else _dict()
 				for f in fields:
 					row[f"_extra_{f['fieldname']}"] = linked_data.get(f["linked_docfield"], "")
+
+	# Enrich linked line fields
+	for key, prefix in (("popup_line1_field", "_popup_line1"), ("popup_line2_field", "_popup_line2")):
+		line_cfg = (line_fields or {}).get(key)
+		if not isinstance(line_cfg, dict) or not line_cfg.get("is_linked"):
+			continue
+		link_field = line_cfg["link_field"]
+		linked_doctype = line_cfg["linked_doctype"]
+		linked_docfield = line_cfg["linked_docfield"]
+		link_values: set[str] = set()
+		for row in rows:
+			lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
+			if lv:
+				link_values.add(lv)
+		if not link_values:
+			continue
+		linked_docs = cast(
+			list[_dict],
+			frappe.get_all(
+				linked_doctype,
+				filters=[["name", "in", list(link_values)]],
+				fields=["name", linked_docfield],
+			),
+		)
+		linked_doc_map = {str(d.name): d for d in linked_docs}
+		for row in rows:
+			lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
+			linked_data = linked_doc_map.get(lv, _dict()) if lv else _dict()
+			row[prefix] = linked_data.get(linked_docfield, "")
 
 
 def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None, line_fields: dict | None = None, marker_map: dict | None = None) -> dict:
