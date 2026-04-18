@@ -675,6 +675,7 @@ border-radius:2px;
 	_fit_active_bounds() {
 		const layers = [...this._view_layers.values()];
 		if (this.pinned_layer) layers.push(this.pinned_layer);
+		if (this.location_layer) layers.push(this.location_layer);
 		const groups = layers.filter((l) => l.getLayers && l.getLayers().length > 0);
 		if (!groups.length) return;
 		const combined = L.featureGroup(groups);
