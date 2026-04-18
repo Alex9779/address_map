@@ -537,18 +537,18 @@ border-radius:2px;
 			// Pre-select: route_options (from list view button) > settings default
 			const route_opts = frappe.route_options || {};
 			frappe.route_options = null;
-			const def = route_opts.doctype || (this._settings && this._settings.default_doctype);
+			const raw_def = route_opts.doctype || (this._settings && this._settings.default_doctype);
 			this._pending_filters = route_opts.filters || null;
-			if (def) {
+			if (raw_def) {
+				const defs = String(raw_def).split(",").map((s) => s.trim()).filter(Boolean);
 				this.$view_list.find("div[data-idx]").each((_, el) => {
 					const $item = $(el);
 					const idx = parseInt($item.data("idx"));
 					const view = this._views[idx];
-					if (view && (view.label === def || view.doctype === def)) {
+					if (view && defs.some((d) => d === view.label || d === view.doctype)) {
 						$item.data("checked", true);
 						this._set_view_checkbox_visual($item, true);
 						this._on_view_toggle(idx, true);
-						return false;
 					}
 				});
 			}

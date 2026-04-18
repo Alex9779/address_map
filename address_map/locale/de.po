@@ -108,11 +108,11 @@ msgstr "Adresskarten-Einstellungen"
 msgid "Views"
 msgstr "Ansichten"
 
-msgid "Default View"
-msgstr "Standard-Ansicht"
+msgid "Default View(s)"
+msgstr "Standard-Ansicht(en)"
 
-msgid "Enter the Name of the view as configured in the Views list."
-msgstr "Den Namen der Ansicht eingeben, wie in der Ansichtsliste konfiguriert."
+msgid "Enter the Name(s) of the view(s) to activate by default. Separate multiple names with commas."
+msgstr "Den/die Namen der standardmäßig zu aktivierenden Ansicht(en) eingeben. Mehrere Namen mit Komma trennen."
 
 msgid "Views shown in the map selector. Each row must have a unique Name. Set Via DocType when the DocType does not hold the address directly (e.g. Sales Invoice → Customer)."
 msgstr "Im Kartenauswähler angezeigte Ansichten. Jede Zeile muss einen eindeutigen Namen haben. Via DocType setzen, wenn der DocType die Adresse nicht direkt enthält (z.B. Ausgangsrechnung → Kunde)."

@@ -36,10 +36,10 @@
    "label": "Views"
   },
   {
-   "description": "Enter the Name of the view as configured in the Views list.",
+   "description": "Enter the Name(s) of the view(s) to activate by default. Separate multiple names with commas.",
    "fieldname": "default_doctype",
    "fieldtype": "Data",
-   "label": "Default View"
+   "label": "Default View(s)"
   },
   {
    "fieldname": "doctypes",
