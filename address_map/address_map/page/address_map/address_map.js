@@ -21,6 +21,10 @@ class AddressMapPage {
 		});
 
 		this._settings = {};
+		this._views = [];
+		this._view_layers = new Map(); // idx -> L.featureGroup
+		this._view_legends = new Map(); // idx -> legend[]
+		this._filter_group_idx = null;
 
 		// Grey icon-only refresh button left of the "…" menu (standard Frappe location)
 		this.page.add_action_icon("es-line-reload", () => this.refresh(), "", __("Refresh"));
@@ -53,15 +57,12 @@ class AddressMapPage {
 		this._$sidebar.append(`
 <div class="sidebar-section">
 <div class="list-filters">
-<div class="sidebar-label text-muted small mb-1">${__("View")}</div>
-<select id="address-map-doctype-select" class="form-control input-xs">
-<option value="">${__("Select a view\u2026")}</option>
-</select>
+<div class="sidebar-label text-muted small mb-1">${__("Views")}</div>
+<div id="address-map-view-list" style="display:flex;flex-direction:column;gap:4px;"></div>
 </div>
 </div>
 `);
-		this.$doctype_select = this._$sidebar.find("#address-map-doctype-select");
-		this.$doctype_select.on("change", () => this._on_doctype_change());
+		this.$view_list = this._$sidebar.find("#address-map-view-list");
 
 		// Saved filters section (hidden until a doctype is selected)
 		this._$sidebar.append(`
@@ -159,7 +160,9 @@ ${__("Show Saved")}
 	}
 
 	_save_filter(filter_name) {
-		const doctype = this.$doctype_select.val();
+		const doctype = this._filter_group_idx !== null && this._views[this._filter_group_idx]
+			? this._views[this._filter_group_idx].doctype
+			: null;
 		if (!doctype || !this.filter_group) return Promise.resolve();
 		const filters = JSON.stringify(this.filter_group.get_filters());
 		return frappe.db.insert({
@@ -172,7 +175,9 @@ ${__("Show Saved")}
 	}
 
 	_refresh_saved_filters() {
-		const doctype = this.$doctype_select.val();
+		const doctype = this._filter_group_idx !== null && this._views[this._filter_group_idx]
+			? this._views[this._filter_group_idx].doctype
+			: null;
 		if (!doctype) return;
 
 		frappe.db
@@ -286,13 +291,19 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 			}
 			this.$saved_filters_wrapper.show();
 			this._refresh_saved_filters();
-			this._load_map_data();
+			if (this._filter_group_idx !== null) {
+				this._load_view_layer(this._filter_group_idx);
+			}
 		});
 	}
 
 	_on_filter_change() {
 		clearTimeout(this._filter_change_timer);
-		this._filter_change_timer = setTimeout(() => this._load_map_data(), 500);
+		this._filter_change_timer = setTimeout(() => {
+			if (this._filter_group_idx !== null) {
+				this._load_view_layer(this._filter_group_idx);
+			}
+		}, 500);
 	}
 
 	// ──────────────────────────────────────────────────────────────
@@ -328,7 +339,7 @@ ${__("Loading\u2026")}
 					frappe.show_alert({ message: __("Unassigned"), indicator: "blue" });
 					this._preserve_zoom = true;
 					this._suppress_count = true;
-					this._load_map_data();
+					this._reload_all_active_views();
 				});
 			} else {
 				frappe.call({
@@ -338,7 +349,7 @@ ${__("Loading\u2026")}
 					frappe.show_alert({ message: __("Assigned to you"), indicator: "green" });
 					this._preserve_zoom = true;
 					this._suppress_count = true;
-					this._load_map_data();
+					this._reload_all_active_views();
 				});
 			}
 		});
@@ -356,7 +367,6 @@ ${__("Loading\u2026")}
 			L.control.locate({ position: "topright" }).addTo(this.map);
 		}
 
-		this.marker_layer = null;
 		this.pinned_layer = L.featureGroup().addTo(this.map);
 		this.location_layer = L.featureGroup().addTo(this.map);
 
@@ -391,7 +401,7 @@ ${__("Loading\u2026")}
 					.bindTooltip(__("You are here"), { permanent: false })
 					.addTo(this.location_layer);
 
-				if (!this.marker_layer) {
+				if (!this._view_layers.size) {
 					this.map.setView([lat, lng], 13);
 				}
 			},
@@ -418,7 +428,7 @@ ${__("Loading\u2026")}
 			const marker = this._make_pinned_marker([lat, lng], color, shape);
 			marker.bindPopup(feature.properties.popup, { maxWidth: 300, minWidth: 180 }).addTo(this.pinned_layer);
 		});
-		if (features.length && !this.marker_layer) {
+		if (features.length && !this._view_layers.size) {
 			this.map.fitBounds(this.pinned_layer.getBounds(), { padding: [40, 40] });
 		}
 	}
@@ -487,22 +497,41 @@ border-radius:2px;
 	// DocType loading & selection
 	// ──────────────────────────────────────────────────────────────
 
+	_make_view_checkbox(i, label) {
+		const $item = $(`<div data-idx="${i}" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0;user-select:none;">
+<span class="address-map-view-check" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;min-width:14px;border:1px solid var(--gray-500);border-radius:4px;background:transparent;transition:background .15s,border-color .15s;"></span>
+<span style="font-size:var(--text-sm);">${frappe.utils.escape_html(label)}</span>
+</div>`);
+		$item.on("click", () => {
+			const checked = $item.data("checked") !== true;
+			$item.data("checked", checked);
+			this._set_view_checkbox_visual($item, checked);
+			this._on_view_toggle(i, checked);
+		});
+		return $item;
+	}
+
+	_set_view_checkbox_visual($item, checked) {
+		const $box = $item.find(".address-map-view-check");
+		if (checked) {
+			$box.css({ background: "var(--primary)", borderColor: "var(--primary)" });
+			$box.html(`<svg viewBox="0 0 8 7" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:9px;height:9px;"><path d="M1 4L2.667 5.8L7 1.2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+		} else {
+			$box.css({ background: "", borderColor: "" });
+			$box.html("");
+		}
+	}
+
 	_load_views() {
 		frappe.call({ method: "address_map.api.get_views" }).then((r) => {
 			if (!r.message || !r.message.length) {
 				frappe.msgprint(__("No views configured in Address Map Settings."));
 				return;
 			}
-			r.message.forEach((entry) => {
-				this.$doctype_select.append(
-					`<option value="${frappe.utils.escape_html(entry.doctype)}"
-          data-via="${frappe.utils.escape_html(entry.via || "")}"
-          data-via-field="${frappe.utils.escape_html(entry.via_field || "")}"
-          data-display-name="${frappe.utils.escape_html(entry.display_name || "")}"
-          data-allow-assign="${entry.allow_assign ? "1" : "0"}">
- ${frappe.utils.escape_html(entry.label)}
-</option>`,
-				);
+			this._views = r.message;
+			r.message.forEach((entry, i) => {
+				const $item = this._make_view_checkbox(i, entry.label);
+				this.$view_list.append($item);
 			});
 
 			// Pre-select: route_options (from list view button) > settings default
@@ -511,65 +540,149 @@ border-radius:2px;
 			const def = route_opts.doctype || (this._settings && this._settings.default_doctype);
 			this._pending_filters = route_opts.filters || null;
 			if (def) {
-				// Match by label text first (handles display_name entries), then by doctype value
-				let matched = false;
-				this.$doctype_select.find("option").each((_, opt) => {
-					if ($(opt).text().trim() === def || $(opt).val() === def) {
-						$(opt).prop("selected", true);
-						matched = true;
+				this.$view_list.find("div[data-idx]").each((_, el) => {
+					const $item = $(el);
+					const idx = parseInt($item.data("idx"));
+					const view = this._views[idx];
+					if (view && (view.label === def || view.doctype === def)) {
+						$item.data("checked", true);
+						this._set_view_checkbox_visual($item, true);
+						this._on_view_toggle(idx, true);
 						return false;
 					}
 				});
-				if (matched) this._on_doctype_change();
 			}
 		});
 	}
 
-	_on_doctype_change() {
-		const selected = this.$doctype_select.find("option:selected");
-		const doctype = selected.val();
-		if (!doctype) return;
+	_on_view_toggle(idx, checked) {
+		if (checked) {
+			this._load_view_layer(idx);
+		} else {
+			if (this._view_layers.has(idx)) {
+				this.map.removeLayer(this._view_layers.get(idx));
+				this._view_layers.delete(idx);
+			}
+			this._view_legends.delete(idx);
+			this._combine_and_render_legend();
+		}
+		this._update_filter_section();
+	}
 
-		const initial_filters = this._pending_filters
-			? typeof this._pending_filters === "string"
-				? JSON.parse(this._pending_filters)
-				: this._pending_filters
-			: null;
-		this._pending_filters = null;
+	_get_checked_view_indices() {
+		const indices = [];
+		this.$view_list.find("div[data-idx]").each((_, el) => {
+			if ($(el).data("checked") === true) indices.push(parseInt($(el).data("idx")));
+		});
+		return indices;
+	}
 
-		this._setup_filter_group(doctype, initial_filters);
+	_update_filter_section() {
+		const active = this._get_checked_view_indices();
+		if (active.length === 1) {
+			const idx = active[0];
+			const view = this._views[idx];
+			if (this._filter_group_idx !== idx) {
+				this._filter_group_idx = idx;
+				const initial_filters = this._pending_filters
+					? typeof this._pending_filters === "string"
+						? JSON.parse(this._pending_filters)
+						: this._pending_filters
+					: null;
+				this._pending_filters = null;
+				this._setup_filter_group(view.doctype, initial_filters);
+			}
+		} else {
+			if (this.filter_group) {
+				this.filter_group.wrapper && this.filter_group.wrapper.empty();
+				this.filter_group = null;
+			}
+			this.$filter_section.find(".filter-selector").remove();
+			this._filter_group_idx = null;
+			this.$saved_filters_wrapper.hide();
+		}
 	}
 
 	// ──────────────────────────────────────────────────────────────
 	// Map data
 	// ──────────────────────────────────────────────────────────────
 
-	_load_map_data() {
-		const selected = this.$doctype_select.find("option:selected");
-		const doctype = selected.val();
-		if (!doctype) return;
+	_load_view_layer(idx) {
+		const view = this._views[idx];
+		if (!view) return;
 
-		const via = selected.data("via") || null;
-		const via_field = selected.data("via-field") || null;
-		const display_name = selected.data("display-name") || null;
-		const allow_assign = parseInt(selected.data("allow-assign")) !== 0;
-		const doctype_label = selected.text().trim();
-		const filters = this.filter_group ? JSON.stringify(this.filter_group.get_filters()) : null;
+		const filters = (this._filter_group_idx === idx && this.filter_group)
+			? JSON.stringify(this.filter_group.get_filters())
+			: null;
 
 		this._set_loading(true);
-		this._render_legend([]);
 		frappe
 			.call({
 				method: "address_map.api.get_map_data",
-				args: { doctype, via, via_field, filters, display_name },
+				args: {
+					doctype: view.doctype,
+					via: view.via || null,
+					via_field: view.via_field || null,
+					filters,
+					display_name: view.display_name || null,
+				},
 			})
 			.then((r) => {
 				this._set_loading(false);
-				this._render_markers(r.message || {}, { preserve_zoom: this._preserve_zoom, suppress_count: this._suppress_count, doctype_label, allow_assign });
+				const geojson = r.message || {};
+				const allow_assign = view.allow_assign !== false;
+				const doctype_label = view.label || view.doctype;
+				const defaultColor = this._settings.default_marker_color || "#3388ff";
+				const defaultShape = (this._settings.default_marker_shape || "circle").toLowerCase();
+
+				if (this._view_layers.has(idx)) {
+					this.map.removeLayer(this._view_layers.get(idx));
+				}
+				const layer = this._build_marker_layer(geojson, { allow_assign });
+				this._view_layers.set(idx, layer);
+				if (this.map) layer.addTo(this.map);
+
+				this._view_legends.set(idx, [
+					{ label: doctype_label, color: defaultColor, shape: defaultShape, hide: false },
+					...(geojson.legend || []),
+				]);
+				this._combine_and_render_legend();
+
+				if (!this._preserve_zoom) {
+					this._fit_active_bounds();
+				}
 				this._preserve_zoom = false;
+
+				const features = geojson.features || [];
+				if (!features.length) {
+					frappe.show_alert({ message: __("No geocoded addresses found for this view."), indicator: "orange" });
+				} else if (!this._suppress_count) {
+					frappe.show_alert({ message: __("{0} address(es) shown", [features.length]), indicator: "green" });
+				}
 				this._suppress_count = false;
 			})
 			.catch(() => this._set_loading(false));
+	}
+
+	_combine_and_render_legend() {
+		const combined = [];
+		this._get_checked_view_indices().forEach((idx) => {
+			if (this._view_legends.has(idx)) combined.push(...this._view_legends.get(idx));
+		});
+		this._render_legend(combined);
+	}
+
+	_fit_active_bounds() {
+		const layers = [...this._view_layers.values()];
+		if (this.pinned_layer) layers.push(this.pinned_layer);
+		const groups = layers.filter((l) => l.getLayers && l.getLayers().length > 0);
+		if (!groups.length) return;
+		const combined = L.featureGroup(groups);
+		this.map.fitBounds(combined.getBounds(), { padding: [40, 40] });
+	}
+
+	_reload_all_active_views() {
+		this._get_checked_view_indices().forEach((idx) => this._load_view_layer(idx));
 	}
 
 	_render_legend(legend) {
@@ -602,30 +715,12 @@ border-radius:2px;
 		this.$legend_section.show();
 	}
 
-	_render_markers(geojson, { preserve_zoom = false, suppress_count = false, doctype_label = "", allow_assign = true } = {}) {
+	_build_marker_layer(geojson, { allow_assign = true } = {}) {
 		const defaultColor = this._settings.default_marker_color || "#3388ff";
 		const defaultShape = (this._settings.default_marker_shape || "circle").toLowerCase();
-		const rulesLegend = geojson.legend || [];
-		const defaultEntry = doctype_label
-			? [{ label: doctype_label, color: defaultColor, shape: defaultShape, hide: false }]
-			: [];
-		this._render_legend([...defaultEntry, ...rulesLegend]);
-		if (this.marker_layer) {
-			this.map.removeLayer(this.marker_layer);
-			this.marker_layer = null;
-		}
+		const layer = L.featureGroup();
 
-		const features = geojson.features;
-		if (!features || !features.length) {
-			frappe.show_alert({
-			message: __("No geocoded addresses found for this view."),
-				indicator: "orange",
-			});
-			return;
-		}
-
-		this.marker_layer = L.featureGroup();
-
+		const features = geojson.features || [];
 		features.forEach((feature) => {
 			const [lng, lat] = feature.geometry.coordinates;
 			const props = feature.properties;
@@ -687,23 +782,9 @@ border-radius:2px;
 			marker.on("popupclose", function () {
 				this._am_pinned = false;
 			});
-			this.marker_layer.addLayer(marker);
+			layer.addLayer(marker);
 		});
-		this.marker_layer.addTo(this.map);
-
-		if (!preserve_zoom) {
-			const combined = L.featureGroup([this.marker_layer, this.pinned_layer]);
-			if (combined.getLayers().length) {
-				this.map.fitBounds(combined.getBounds(), { padding: [40, 40] });
-			}
-		}
-
-		if (!suppress_count) {
-			frappe.show_alert({
-				message: __("{0} address(es) shown", [features.length]),
-				indicator: "green",
-			});
-		}
+		return layer;
 	}
 
 	_set_loading(state) {
@@ -725,23 +806,36 @@ border-radius:2px;
 
 		if (incoming_doctype || incoming_filters) {
 			frappe.route_options = null;
-			const current_doctype = this.$doctype_select.val();
-
-			if (incoming_doctype && incoming_doctype !== current_doctype) {
-				// Different doctype: switch selection; filters applied via _pending_filters
-				this._pending_filters = incoming_filters;
-				this.$doctype_select.val(incoming_doctype);
-				if (this.$doctype_select.val()) {
-					this._on_doctype_change();
-				}
+			if (incoming_doctype) {
+				// Find and check the matching view checkbox
+				this.$view_list.find("div[data-idx]").each((_, el) => {
+					const $item = $(el);
+					const idx = parseInt($item.data("idx"));
+					const view = this._views[idx];
+					if (view && (view.label === incoming_doctype || view.doctype === incoming_doctype)) {
+						if (!$item.data("checked")) {
+							this._pending_filters = incoming_filters;
+							$item.data("checked", true);
+							this._set_view_checkbox_visual($item, true);
+							this._on_view_toggle(idx, true);
+						} else if (incoming_filters && this.filter_group) {
+							const filters = typeof incoming_filters === "string"
+								? JSON.parse(incoming_filters)
+								: incoming_filters;
+							this._apply_saved_filter(filters);
+						}
+						return false;
+					}
+				});
 			} else if (incoming_filters && this.filter_group) {
-				// Same doctype, just replace active filters
-				const filters = typeof incoming_filters === "string" ? JSON.parse(incoming_filters) : incoming_filters;
+				const filters = typeof incoming_filters === "string"
+					? JSON.parse(incoming_filters)
+					: incoming_filters;
 				this._apply_saved_filter(filters);
 			}
-		} else if (this.$doctype_select.val()) {
-			// No route_options: re-fetch map data for the currently selected doctype
-			this._load_map_data();
+		} else {
+			// No route_options: re-fetch data for all currently checked views
+			this._reload_all_active_views();
 		}
 
 		// Always re-fetch saved filters so the list is current after navigating away and back
