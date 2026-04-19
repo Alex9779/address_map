@@ -210,8 +210,8 @@ msgstr "Muss exakt mit dem Namen einer Ansicht übereinstimmen, wie in der Ansic
 msgid "Field"
 msgstr "Feld"
 
-msgid "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link field, e.g. <code>customer.territory</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>."
-msgstr "Auszuwertendes Feld, z.B. <code>status</code>. Punktnotation verwenden, um ein Verknüpfungsfeld zu traversieren, z.B. <code>customer.territory</code>. Systemfeld-Aliase: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. <code>{me}</code> als Platzhalter für den aktuellen Benutzer verwenden, z.B. Feld <code>assigned</code>, Operator <code>like</code>, Wert <code>%{me}%</code>."
+msgid "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link or child table field, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>."
+msgstr "Auszuwertendes Feld, z.B. <code>status</code>. Punktnotation verwenden, um ein Verknüpfungs- oder Kindtabellenfeld zu durchlaufen, z.B. <code>customer.territory</code> oder <code>service_technicians.technician</code>. Systemfeld-Aliase: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>."
 
 msgid "Operator"
 msgstr "Operator"
@@ -219,8 +219,8 @@ msgstr "Operator"
 msgid "Value"
 msgstr "Wert"
 
-msgid "Use <code>{me}</code> as a placeholder for the current user's email, e.g. <code>%{me}%</code> with <code>like</code>. For <code>in</code> / <code>not in</code> separate multiple values with commas."
-msgstr "<code>{me}</code> als Platzhalter für die E-Mail des aktuellen Benutzers verwenden, z.B. <code>%{me}%</code> mit <code>like</code>. Für <code>in</code> / <code>not in</code> mehrere Werte mit Komma trennen."
+msgid "For <code>in</code> / <code>not in</code> separate multiple values with commas. Use <code>{me}</code> for the current user&#x2019;s email or <code>{me.fieldname}</code> for any field on the User record (e.g. <code>{me.full_name}</code>)."
+msgstr "Für <code>in</code> / <code>not in</code> mehrere Werte mit Komma trennen. <code>{me}</code> für die E-Mail des aktuellen Benutzers oder <code>{me.feldname}</code> für ein beliebiges Feld im Benutzerdatensatz verwenden (z.B. <code>{me.full_name}</code>)."
 
 msgid "Marker Color"
 msgstr "Marker-Farbe"
@@ -246,8 +246,8 @@ msgstr "Feldname"
 msgid "Label Override"
 msgstr "Bezeichnung überschreiben"
 
-msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document, e.g. <code>customer.territory</code>. Open the DocType form and inspect the fieldname column."
-msgstr "Feldname genau wie im DocType definiert (z.B. <code>customer_name</code>). Punktnotation verwenden, um ein Feld aus einem verknüpften Dokument anzuzeigen, z.B. <code>customer.territory</code>. Das DocType-Formular öffnen und die Feldname-Spalte prüfen."
+msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document or child table, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. Open the DocType form and inspect the fieldname column."
+msgstr "Feldname genau wie im DocType definiert (z.B. <code>customer_name</code>). Punktnotation verwenden, um ein Feld aus einem verknüpften Dokument oder einer Kindtabelle anzuzeigen, z.B. <code>customer.territory</code> oder <code>service_technicians.technician</code>. Das DocType-Formular öffnen und die Feldname-Spalte prüfen."
 
 msgid "Display label shown in the popup. Defaults to the field's own label when left blank."
 msgstr "Anzeigebezeichnung im Popup. Wenn leer, wird die eigene Feldbezeichnung verwendet."

@@ -23,7 +23,7 @@
    "reqd": 1
   },
   {
-   "description": "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link field, e.g. <code>customer.territory</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>.",
+   "description": "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link or child table field, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>.",
    "fieldname": "fieldname",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -39,7 +39,7 @@
    "reqd": 1
   },
   {
-   "description": "Use <code>{me}</code> as a placeholder for the current user's email, e.g. <code>%{me}%</code> with <code>like</code>. For <code>in</code> / <code>not in</code> separate multiple values with commas.",
+   "description": "For <code>in</code> / <code>not in</code> separate multiple values with commas. Use <code>{me}</code> for the current user&#x2019;s email or <code>{me.fieldname}</code> for any field on the User record (e.g. <code>{me.full_name}</code>).",
    "fieldname": "value",
    "fieldtype": "Data",
    "in_list_view": 1,

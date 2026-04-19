@@ -18,7 +18,7 @@
    "reqd": 1
   },
   {
-   "description": "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document, e.g. <code>customer.territory</code>. Open the DocType form and inspect the fieldname column.",
+   "description": "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document or child table, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. Open the DocType form and inspect the fieldname column.",
    "fieldname": "fieldname",
    "fieldtype": "Data",
    "in_list_view": 1,

@@ -21,15 +21,11 @@ def get_views() -> list[dict]:
 
 	Each entry: {doctype, via, via_field, label}
 	"""
-	rows = cast(
-		list[_dict],
-		frappe.db.get_all(
-			"Address Map View",
-			filters={"parent": "Address Map Settings", "parentfield": "doctypes"},
-			fields=["doctype_name", "via_doctype", "display_name", "allow_assign", "address_type_priority"],
-			order_by="idx",
-		),
-	)
+	# frappe.db.get_all silently strips child-table fields that are not in the
+	# default field set when no parent_doctype context is available at the ORM
+	# layer.  Reading the parent document directly avoids this problem.
+	settings = frappe.get_cached_doc("Address Map Settings")
+	rows = cast(list[_dict], settings.get("doctypes") or [])
 
 	result = []
 	for row in rows:
@@ -274,6 +270,9 @@ def _map_data_level2(doctype: str, via: str, via_field: str, allowed_names: set[
 _POPUP_SKIP_TYPES: frozenset[str] = frozenset({
 	"Section Break", "Column Break", "Tab Break", "HTML", "Button",
 	"Image", "Signature", "Password", "Attach", "Attach Image",
+	# Table fieldtypes have no DB column; bare table fields are skipped.
+	# Use dot-notation (e.g. "service_technicians.technician") to show child rows.
+	"Table", "Table MultiSelect",
 })
 
 
@@ -300,14 +299,28 @@ def _get_rules(display_name: str | None, doctype: str) -> list[_dict]:
 		raw_fn = str(row.fieldname or "").strip()
 		op = str(row.operator or "").strip()
 
-		# Dot-notation: traverse a Link field (e.g. "customer.territory")
+		# Dot-notation: traverse a Link or Table field (e.g. "customer.territory" or "service_technicians.technician")
 		if "." in raw_fn:
 			parts = raw_fn.split(".", 1)
 			link_field, linked_docfield = parts[0].strip(), parts[1].strip()
 			if not link_field or not linked_docfield:
 				continue
 			link_meta_field = meta.get_field(link_field)
-			if not link_meta_field or link_meta_field.fieldtype != "Link" or not link_meta_field.options:
+			if not link_meta_field or not link_meta_field.options:
+				continue
+			if link_meta_field.fieldtype in ("Table", "Table MultiSelect"):
+				child_doctype = link_meta_field.options
+				if not frappe.get_meta(child_doctype).get_field(linked_docfield):
+					continue
+				if not hide and (not op or op not in _allowed_ops):
+					continue
+				row.is_child_table_rule = True
+				row.table_field = link_field
+				row.child_doctype = child_doctype
+				row.child_fieldname = linked_docfield
+				safe.append(row)
+				continue
+			if link_meta_field.fieldtype != "Link":
 				continue
 			linked_doctype = link_meta_field.options
 			if not frappe.get_meta(linked_doctype).get_field(linked_docfield):
@@ -350,6 +363,32 @@ def _resolve_fieldname(fn: str) -> str:
 	return _FIELD_ALIASES.get(fn, fn)
 
 
+_me_field_re = re.compile(r"\{me\.([^}]+)\}")
+
+def _resolve_me(val: str) -> str:
+	"""Replace {me} and {me.fieldname} placeholders with the current user's values.
+
+	- ``{me}`` → ``frappe.session.user`` (the user's email / login name)
+	- ``{me.fieldname}`` → value of that field on the current User document
+	  (e.g. ``{me.full_name}``, ``{me.employee}``)
+	"""
+	if "{me" not in val:
+		return val
+	user = frappe.session.user or ""
+	# Replace {me.fieldname} first so the bare {me} pass doesn't interfere
+	def _sub(m: re.Match) -> str:
+		field = m.group(1).strip()
+		if not field or not user:
+			return ""
+		try:
+			return str(frappe.db.get_value("User", user, field) or "")
+		except Exception:
+			return ""
+	val = _me_field_re.sub(_sub, val)
+	val = val.replace("{me}", user)
+	return val
+
+
 def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -> dict[str, dict]:
 	"""Return a mapping of link_name → {color, shape, hide} based on first-matching rule."""
 	if not rules or not link_names:
@@ -365,7 +404,41 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 		color = str(rule.color or "").strip()
 		shape = str(rule.shape or "").strip()
 
-		if rule.get("is_linked"):
+		if rule.get("is_child_table_rule"):
+			# Dot-notation rule: match via a child table field (e.g. "service_technicians.technician")
+			table_field = str(rule.get("table_field") or "")
+			child_doctype = str(rule.get("child_doctype") or "")
+			child_fn = str(rule.get("child_fieldname") or "")
+			if not hide and not color:
+				continue
+			try:
+				if op == "is set":
+					op, val = "is", "set"
+				elif op == "is not set":
+					op, val = "is", "not set"
+				elif op in ("in", "not in"):
+					val = [v.strip() for v in val.split(",") if v.strip()]  # type: ignore[assignment]
+				if isinstance(val, str):
+					val = _resolve_me(val)
+
+				if table_field and child_doctype and child_fn and op:
+					matching_parents = cast(list[str], frappe.get_all(
+						child_doctype,
+						filters=[
+							["parent", "in", unresolved],
+							["parentfield", "=", table_field],
+							[child_fn, op, val],  # type: ignore[arg-type]
+						],
+						pluck="parent",
+					))
+					matched = set(matching_parents)
+				elif hide:
+					matched = set(unresolved)
+				else:
+					continue
+			except Exception:
+				continue
+		elif rule.get("is_linked"):
 			# Dot-notation rule: two-step query via a Link field
 			link_field = str(rule.get("link_field") or "")
 			linked_doctype = str(rule.get("linked_doctype") or "")
@@ -380,8 +453,8 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 					op, val = "is", "not set"
 				elif op in ("in", "not in"):
 					val = [v.strip() for v in val.split(",") if v.strip()]  # type: ignore[assignment]
-				if isinstance(val, str) and "{me}" in val:
-					val = val.replace("{me}", frappe.session.user or "")
+				if isinstance(val, str):
+					val = _resolve_me(val)
 
 				if link_field and linked_doctype and linked_fn and op:
 					linked_matched = cast(list[str], frappe.db.get_all(
@@ -415,9 +488,9 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 					op, val = "is", "not set"
 				elif op in ("in", "not in"):
 					val = [v.strip() for v in val.split(",") if v.strip()]  # type: ignore[assignment]
-				# {me} placeholder → current session user
-				if isinstance(val, str) and "{me}" in val:
-					val = val.replace("{me}", frappe.session.user or "")
+				# {me} / {me.fieldname} placeholder → current session user (or a field thereof)
+				if isinstance(val, str):
+					val = _resolve_me(val)
 
 				if fn and op:
 					filter_entry: list | None = [fn, op, val]
@@ -579,13 +652,35 @@ def _get_popup_fields(display_name: str | None, doctype: str) -> list[dict]:
 			continue
 
 		# Dot-notation: traverse a Link field (e.g. "customer.territory")
+		# or a child Table field (e.g. "service_technicians.technician").
 		if "." in fn:
 			parts = fn.split(".", 1)
 			link_field, linked_docfield = parts[0].strip(), parts[1].strip()
 			if not link_field or not linked_docfield:
 				continue
 			link_meta_field = meta.get_field(link_field)
-			if not link_meta_field or link_meta_field.fieldtype != "Link" or not link_meta_field.options:
+			if not link_meta_field:
+				continue
+
+			# Child table dot-notation
+			if link_meta_field.fieldtype in ("Table", "Table MultiSelect"):
+				child_doctype = link_meta_field.options
+				child_field_meta = frappe.get_meta(child_doctype).get_field(linked_docfield)
+				if not child_field_meta or child_field_meta.fieldtype in _POPUP_SKIP_TYPES:
+					continue
+				safe.append({
+					"fieldname": fn,
+					"label": lbl or child_field_meta.label or fn,
+					"fieldtype": child_field_meta.fieldtype,
+					"is_child_table": True,
+					"table_field": link_field,
+					"child_doctype": child_doctype,
+					"child_field": linked_docfield,
+				})
+				continue
+
+			# Link field dot-notation
+			if link_meta_field.fieldtype != "Link" or not link_meta_field.options:
 				continue
 			linked_doctype = link_meta_field.options
 			linked_field = frappe.get_meta(linked_doctype).get_field(linked_docfield)
@@ -616,9 +711,10 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 	if not names:
 		return
 
-	# Separate regular and linked (dot-notation) popup fields
-	regular_popup = [f for f in (popup_fields or []) if not f.get("is_linked")]
+	# Separate regular, linked (dot-notation Link), and child table popup fields
+	regular_popup = [f for f in (popup_fields or []) if not f.get("is_linked") and not f.get("is_child_table")]
 	linked_popup = [f for f in (popup_fields or []) if f.get("is_linked")]
+	child_table_popup = [f for f in (popup_fields or []) if f.get("is_child_table")]
 
 	# Columns to fetch from the main doctype: regular popup fieldnames + line fields +
 	# link_field columns required by linked popup fields
@@ -673,17 +769,21 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 				# legacy plain string
 				row[prefix] = extra.get(line_cfg, "")
 
-	# Enrich linked popup fields: group by (link_field, linked_doctype) for efficient batch fetching
-	if linked_popup and doc_map:
+	# Enrich all linked fields (popup fields + line1/line2) in one unified pass.
+	# Linked line fields are treated identically to linked popup fields; the only
+	# difference is the destination key on the row (_popup_line1/2 vs _extra_*).
+	unified_linked: list[dict] = list(linked_popup)
+	for key, dest_key in (("popup_line1_field", "_popup_line1"), ("popup_line2_field", "_popup_line2")):
+		line_cfg = (line_fields or {}).get(key)
+		if isinstance(line_cfg, dict) and line_cfg.get("is_linked"):
+			unified_linked.append({**line_cfg, "_dest_key": dest_key, "_dest_key_link": dest_key + "_link"})
+
+	if unified_linked and doc_map:
 		groups: dict[tuple[str, str], list[dict]] = {}
-		for f in linked_popup:
-			group_key = (f["link_field"], f["linked_doctype"])
-			if group_key not in groups:
-				groups[group_key] = []
-			groups[group_key].append(f)
+		for f in unified_linked:
+			groups.setdefault((f["link_field"], f["linked_doctype"]), []).append(f)
 
 		for (link_field, linked_doctype), fields in groups.items():
-			# Collect unique link values present across all rows
 			link_values: set[str] = set()
 			for row in rows:
 				lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
@@ -691,7 +791,7 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 					link_values.add(lv)
 			if not link_values:
 				continue
-			linked_fieldnames = [f["linked_docfield"] for f in fields]
+			linked_fieldnames = list({f["linked_docfield"] for f in fields})
 			linked_docs = cast(
 				list[_dict],
 				frappe.get_all(
@@ -705,36 +805,42 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 				lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
 				linked_data = linked_doc_map.get(lv, _dict()) if lv else _dict()
 				for f in fields:
-					row[f"_extra_{f['fieldname']}"] = linked_data.get(f["linked_docfield"], "")
+					dest = f.get("_dest_key") or f"_extra_{f['fieldname']}"
+					row[dest] = linked_data.get(f["linked_docfield"], "")
+					dest_link = f.get("_dest_key_link")
+					if dest_link:
+						row[dest_link] = lv
 
-	# Enrich linked line fields
-	for key, prefix in (("popup_line1_field", "_popup_line1"), ("popup_line2_field", "_popup_line2")):
-		line_cfg = (line_fields or {}).get(key)
-		if not isinstance(line_cfg, dict) or not line_cfg.get("is_linked"):
-			continue
-		link_field = line_cfg["link_field"]
-		linked_doctype = line_cfg["linked_doctype"]
-		linked_docfield = line_cfg["linked_docfield"]
-		link_values: set[str] = set()
-		for row in rows:
-			lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
-			if lv:
-				link_values.add(lv)
-		if not link_values:
-			continue
-		linked_docs = cast(
-			list[_dict],
-			frappe.get_all(
-				linked_doctype,
-				filters=[["name", "in", list(link_values)]],
-				fields=["name", linked_docfield],
-			),
-		)
-		linked_doc_map = {str(d.name): d for d in linked_docs}
-		for row in rows:
-			lv = str(doc_map.get(str(row.link_name or ""), _dict()).get(link_field) or "").strip()
-			linked_data = linked_doc_map.get(lv, _dict()) if lv else _dict()
-			row[prefix] = linked_data.get(linked_docfield, "")
+	# Enrich child table fields: batch-fetch child rows grouped by parent.
+	if child_table_popup and names:
+		ct_groups: dict[tuple[str, str], list[dict]] = {}
+		for f in child_table_popup:
+			ct_groups.setdefault((f["table_field"], f["child_doctype"]), []).append(f)
+
+		for (table_field, child_doctype), fields in ct_groups.items():
+			child_fieldnames = list({f["child_field"] for f in fields})
+			child_rows = cast(
+				list[_dict],
+				frappe.get_all(
+					child_doctype,
+					filters=[["parent", "in", names], ["parentfield", "=", table_field]],
+					fields=["parent"] + child_fieldnames,
+					order_by="idx",
+				),
+			)
+			child_by_parent: dict[str, list[_dict]] = {}
+			for cr in child_rows:
+				child_by_parent.setdefault(str(cr.parent or ""), []).append(cr)
+			for row in rows:
+				parent_name = str(row.link_name or "")
+				child_data = child_by_parent.get(parent_name, [])
+				for f in fields:
+					values = [
+						str(cr.get(f["child_field"]) or "")
+						for cr in child_data
+						if cr.get(f["child_field"])
+					]
+					row[f"_extra_{f['fieldname']}"] = values
 
 
 def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None, line_fields: dict | None = None, marker_map: dict | None = None) -> dict:
@@ -754,10 +860,32 @@ def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None
 	line1 = str(row.get("_popup_line1") or "").strip() or link_name
 	line2 = str(row.get("_popup_line2") or "").strip() or link_title
 
+	line1_cfg = (line_fields or {}).get("popup_line1_field")
+	line2_cfg = (line_fields or {}).get("popup_line2_field")
+	dt_slug = frappe.scrub(doctype).replace("_", "-")
+	main_url = f"/app/{dt_slug}/{urllib.parse.quote(link_name)}"
+
+	# Line 1: always a link — to the linked doc if dot-notation, otherwise main doc
+	if isinstance(line1_cfg, dict) and line1_cfg.get("is_linked"):
+		l1_name = str(row.get("_popup_line1_link") or "").strip()
+		l1_slug = frappe.scrub(line1_cfg["linked_doctype"]).replace("_", "-")
+		line1_url = f"/app/{l1_slug}/{urllib.parse.quote(l1_name)}" if l1_name else main_url
+	else:
+		line1_url = main_url
+
+	# Line 2: always a link — to the linked doc if dot-notation, otherwise main doc
+	if isinstance(line2_cfg, dict) and line2_cfg.get("is_linked"):
+		l2_name = str(row.get("_popup_line2_link") or "").strip()
+		l2_slug = frappe.scrub(line2_cfg["linked_doctype"]).replace("_", "-")
+		line2_url = f"/app/{l2_slug}/{urllib.parse.quote(l2_name)}" if l2_name else main_url
+	else:
+		line2_url = main_url
+
+	line2_html = f'<a href="{line2_url}" target="_blank">{escape_html(line2)}</a>'
+
 	popup_html = (
-		f'<strong>{escape_html(line1)}</strong><br>'
-		f'<a href="/app/{frappe.scrub(doctype).replace("_", "-")}/{urllib.parse.quote(link_name)}" target="_blank">'
-		f'{escape_html(line2)}</a>'
+		f'<strong><a href="{line1_url}" target="_blank">{escape_html(line1)}</a></strong><br>'
+		f'{line2_html}'
 		f'<hr style="margin:4px 0">{address_html}'
 	)
 	if popup_fields:
@@ -765,6 +893,18 @@ def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None
 		for f in popup_fields:
 			val = row.get(f"_extra_{f['fieldname']}", "")
 			is_check = f.get("fieldtype") == "Check"
+			if f.get("is_child_table"):
+				items = [str(v) for v in (val if isinstance(val, list) else []) if v is not None and str(v).strip()]
+				if items:
+					lbl = escape_html(str(f.get("label") or f["fieldname"]))
+					val_html = "<br>".join(escape_html(v) for v in items)
+					extra_rows += (
+						f'<tr>'
+						f'<td style="color:var(--text-muted);padding:1px 4px 1px 0;white-space:nowrap;vertical-align:top">{lbl}</td>'
+						f'<td style="padding:1px 0">{val_html}</td>'
+						f'</tr>'
+					)
+				continue
 			if is_check:
 				# Always show checkboxes; render as ✓ or ✗
 				lbl = escape_html(str(f.get("label") or f["fieldname"]))

@@ -324,35 +324,6 @@ ${__("Loading\u2026")}
 `);
 		this.page.main.append(this.$map_wrapper);
 
-		// Persistent event delegation — works regardless of when popups open/close
-		this.$map_wrapper.on("click", ".address-map-assign-btn", (evt) => {
-			evt.preventDefault();
-			const $btn = $(evt.currentTarget);
-			const doctype = $btn.data("doctype");
-			const name = $btn.data("name");
-			const assigned = parseInt($btn.data("assigned")) === 1;
-			if (assigned) {
-				frappe.call({
-					method: "frappe.desk.form.assign_to.remove",
-					args: { doctype, name, assign_to: frappe.session.user },
-				}).then(() => {
-					frappe.show_alert({ message: __("Unassigned"), indicator: "blue" });
-					this._preserve_zoom = true;
-					this._suppress_count = true;
-					this._reload_all_active_views();
-				});
-			} else {
-				frappe.call({
-					method: "address_map.api.assign_to_me",
-					args: { doctype, name },
-				}).then(() => {
-					frappe.show_alert({ message: __("Assigned to you"), indicator: "green" });
-					this._preserve_zoom = true;
-					this._suppress_count = true;
-					this._reload_all_active_views();
-				});
-			}
-		});
 	}
 
 	_init_map() {
@@ -426,11 +397,94 @@ ${__("Loading\u2026")}
 			const color = feature.properties.color || "#e74c3c";
 			const shape = (feature.properties.shape || "Circle").toLowerCase();
 			const marker = this._make_pinned_marker([lat, lng], color, shape);
-			marker.bindPopup(feature.properties.popup, { maxWidth: 300, minWidth: 180 }).addTo(this.pinned_layer);
+			marker.bindPopup(feature.properties.popup, { maxWidth: 300, minWidth: 180 });
+			this._bind_popup_interactions(marker);
+			marker.addTo(this.pinned_layer);
 		});
 		if (features.length && !this._view_layers.size) {
 			this.map.fitBounds(this.pinned_layer.getBounds(), { padding: [40, 40] });
 		}
+	}
+
+	// Attach hover-to-open, click-to-pin, and assign-button behaviour to a marker.
+	_bind_popup_interactions(marker) {
+		const page = this;
+		// Remove Leaflet's built-in click-opens-popup so we can manage it ourselves
+		marker.off("click");
+		// Hover: open popup; delay close so moving into the popup doesn't dismiss it
+		marker.on("mouseover", function () {
+			clearTimeout(this._closeTimer);
+			if (!this._am_pinned) this.openPopup();
+		});
+		marker.on("mouseout", function () {
+			if (this._am_pinned) return;
+			const self = this;
+			this._closeTimer = setTimeout(function () {
+				if (!self._am_pinned) self.closePopup();
+			}, 100);
+		});
+		// Keep popup open while the mouse is inside it; also wire assign button
+		marker.on("popupopen", function () {
+			const el = this.getPopup().getElement();
+			if (!el) return;
+			const self = this;
+			el.addEventListener("mouseenter", function () {
+				clearTimeout(self._closeTimer);
+			});
+			el.addEventListener("mouseleave", function () {
+				if (self._am_pinned) return;
+				self._closeTimer = setTimeout(function () {
+					if (!self._am_pinned) self.closePopup();
+				}, 100);
+			});
+			// Leaflet blocks click propagation on popup containers, so we
+			// bind the assign button directly on the popup element here.
+			const btn = el.querySelector(".address-map-assign-btn");
+			if (btn) {
+				btn.addEventListener("click", function (evt) {
+					evt.preventDefault();
+					const doctype = btn.dataset.doctype;
+					const name = btn.dataset.name;
+					const assigned = parseInt(btn.dataset.assigned) === 1;
+					if (assigned) {
+						frappe.call({
+							method: "frappe.desk.form.assign_to.remove",
+							args: { doctype, name, assign_to: frappe.session.user },
+						}).then(() => {
+							frappe.show_alert({ message: __("Unassigned"), indicator: "blue" });
+							page._preserve_zoom = true;
+							page._suppress_count = true;
+							page._reload_all_active_views();
+						});
+					} else {
+						frappe.call({
+							method: "address_map.api.assign_to_me",
+							args: { doctype, name },
+						}).then(() => {
+							frappe.show_alert({ message: __("Assigned to you"), indicator: "green" });
+							page._preserve_zoom = true;
+							page._suppress_count = true;
+							page._reload_all_active_views();
+						});
+					}
+				});
+			}
+		});
+		// Click: toggle pinned state
+		marker.on("click", function (e) {
+			L.DomEvent.stopPropagation(e);
+			if (this._am_pinned) {
+				this._am_pinned = false;
+				this.closePopup();
+			} else {
+				this._am_pinned = true;
+				this.openPopup();
+			}
+		});
+		// Closing the popup via the × button should also unpin
+		marker.on("popupclose", function () {
+			this._am_pinned = false;
+		});
 	}
 
 	_make_pinned_marker(latlng, color, shape) {
@@ -720,6 +774,7 @@ border-radius:2px;
 		const defaultColor = this._settings.default_marker_color || "#3388ff";
 		const defaultShape = (this._settings.default_marker_shape || "circle").toLowerCase();
 		const layer = L.featureGroup();
+		const page = this;
 
 		const features = geojson.features || [];
 		features.forEach((feature) => {
@@ -739,50 +794,7 @@ border-radius:2px;
 				maxWidth: 300,
 				minWidth: 180,
 			});
-			// Remove Leaflet's built-in click-opens-popup so we can manage it ourselves
-			marker.off("click");
-			// Hover: open popup; delay close so moving into the popup doesn't dismiss it
-			marker.on("mouseover", function () {
-				clearTimeout(this._closeTimer);
-				if (!this._am_pinned) this.openPopup();
-			});
-			marker.on("mouseout", function () {
-				if (this._am_pinned) return;
-				const self = this;
-				this._closeTimer = setTimeout(function () {
-					if (!self._am_pinned) self.closePopup();
-				}, 100);
-			});
-			// Keep popup open while the mouse is inside it
-			marker.on("popupopen", function () {
-				const el = this.getPopup().getElement();
-				if (!el) return;
-				const self = this;
-				el.addEventListener("mouseenter", function () {
-					clearTimeout(self._closeTimer);
-				});
-				el.addEventListener("mouseleave", function () {
-					if (self._am_pinned) return;
-					self._closeTimer = setTimeout(function () {
-						if (!self._am_pinned) self.closePopup();
-					}, 100);
-				});
-			});
-			// Click: toggle pinned state
-			marker.on("click", function (e) {
-				L.DomEvent.stopPropagation(e);
-				if (this._am_pinned) {
-					this._am_pinned = false;
-					this.closePopup();
-				} else {
-					this._am_pinned = true;
-					this.openPopup();
-				}
-			});
-			// Closing the popup via the × button should also unpin
-			marker.on("popupclose", function () {
-				this._am_pinned = false;
-			});
+			this._bind_popup_interactions(marker);
 			layer.addLayer(marker);
 		});
 		return layer;

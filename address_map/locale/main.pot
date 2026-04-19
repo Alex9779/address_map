@@ -166,10 +166,10 @@ msgstr ""
 msgid "Views"
 msgstr ""
 
-msgid "Default View"
+msgid "Default View(s)"
 msgstr ""
 
-msgid "Enter the Name of the view as configured in the Views list."
+msgid "Enter the Name(s) of the view(s) to activate by default. Separate multiple names with commas."
 msgstr ""
 
 msgid "Views shown in the map selector. Each row must have a unique Name. Set Via DocType when the DocType does not hold the address directly (e.g. Sales Invoice → Customer)."
@@ -270,7 +270,7 @@ msgstr ""
 msgid "Field"
 msgstr ""
 
-msgid "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link field, e.g. <code>customer.territory</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>. Use <code>{me}</code> as a placeholder for the current user, e.g. field <code>assigned</code>, operator <code>like</code>, value <code>%{me}%</code>."
+msgid "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link or child table field, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>."
 msgstr ""
 
 msgid "Operator"
@@ -279,7 +279,7 @@ msgstr ""
 msgid "Value"
 msgstr ""
 
-msgid "Use <code>{me}</code> as a placeholder for the current user's email, e.g. <code>%{me}%</code> with <code>like</code>. For <code>in</code> / <code>not in</code> separate multiple values with commas."
+msgid "For <code>in</code> / <code>not in</code> separate multiple values with commas. Use <code>{me}</code> for the current user&#x2019;s email or <code>{me.fieldname}</code> for any field on the User record (e.g. <code>{me.full_name}</code>)."
 msgstr ""
 
 msgid "Marker Color"
@@ -307,7 +307,7 @@ msgstr ""
 msgid "Label Override"
 msgstr ""
 
-msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document, e.g. <code>customer.territory</code>. Open the DocType form and inspect the fieldname column."
+msgid "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document or child table, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. Open the DocType form and inspect the fieldname column."
 msgstr ""
 
 msgid "Display label shown in the popup. Defaults to the field's own label when left blank."
