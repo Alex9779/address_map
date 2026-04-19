@@ -286,12 +286,16 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 		$filter_x_button.on("click", () => this._on_filter_change());
 
 		frappe.model.with_doctype(doctype, () => {
+			let applied_filters = false;
 			if (initial_filters && initial_filters.length) {
 				this.filter_group.add_filters_to_filter_group(initial_filters);
+				applied_filters = true;
 			}
 			this.$saved_filters_wrapper.show();
 			this._refresh_saved_filters();
-			if (this._filter_group_idx !== null) {
+			// Only reload when initial filters were applied — the caller (_on_view_toggle)
+			// already triggered a load without filters; reloading here would duplicate it.
+			if (applied_filters && this._filter_group_idx !== null) {
 				this._load_view_layer(this._filter_group_idx);
 			}
 		});
