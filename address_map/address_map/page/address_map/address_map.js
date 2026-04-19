@@ -513,6 +513,31 @@ ${__("Loading\u2026")}
 			return L.marker(latlng, { icon });
 		}
 		// Square and Diamond
+		if (shape === "triangle") {
+			const icon = L.divIcon({
+				className: "",
+				html: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+<polygon points="9,1 17,17 1,17" fill="${color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+</svg>`,
+				iconSize: [18, 18],
+				iconAnchor: [9, 9],
+				popupAnchor: [0, -11],
+			});
+			return L.marker(latlng, { icon });
+		}
+		if (shape === "star") {
+			const icon = L.divIcon({
+				className: "",
+				html: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+<polygon points="10,1 12.9,7 19.5,7.6 14.5,12 16.2,18.5 10,15 3.8,18.5 5.5,12 0.5,7.6 7.1,7" fill="${color}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>`,
+				iconSize: [20, 20],
+				iconAnchor: [10, 10],
+				popupAnchor: [0, -12],
+			});
+			return L.marker(latlng, { icon });
+		}
+		// Square and Diamond
 		const rotate = shape === "diamond" ? "rotate(45deg)" : "none";
 		const icon = L.divIcon({
 			className: "",

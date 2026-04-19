@@ -54,7 +54,7 @@
    "fieldname": "shape",
    "fieldtype": "Select",
    "label": "Marker Shape",
-   "options": "\nCircle\nSquare\nDiamond\nPin"
+   "options": "\nCircle\nSquare\nDiamond\nPin\nTriangle\nStar"
   },
   {
    "description": "Do not render a marker for matching documents.",
