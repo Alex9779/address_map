@@ -787,13 +787,18 @@ border-radius:2px;
 				const shape = item.shape || "circle";
 				if (shape === "circle") {
 					iconHtml = `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px ${color};"></span>`;
+				} else if (shape === "square") {
+					iconHtml = `<span style="display:inline-block;width:12px;height:12px;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px ${color};border-radius:2px;"></span>`;
 				} else if (shape === "diamond") {
 					iconHtml = `<span style="display:inline-block;width:10px;height:10px;background:${color};border:1.5px solid #fff;box-shadow:0 0 0 1px ${color};transform:rotate(45deg);"></span>`;
+				} else if (shape === "triangle") {
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 18 18" style="display:inline-block;vertical-align:middle;"><polygon points="9,1 17,17 1,17" fill="${color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>`;
+				} else if (shape === "star") {
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" style="display:inline-block;vertical-align:middle;"><polygon points="10,1 12.9,7 19.5,7.6 14.5,12 16.2,18.5 10,15 3.8,18.5 5.5,12 0.5,7.6 7.1,7" fill="${color}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
 				} else if (shape === "pin") {
 					iconHtml = `<span style="display:inline-block;font-size:14px;line-height:1;">📍</span>`;
 				} else {
-					// square
-					iconHtml = `<span style="display:inline-block;width:12px;height:12px;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px ${color};"></span>`;
+					iconHtml = `<span style="display:inline-block;width:12px;height:12px;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px ${color};border-radius:2px;"></span>`;
 				}
 			}
 			this.$legend_items.append(`<span style="display:inline-flex;align-items:center;gap:6px;font-size:0.85em;">${iconHtml}<span>${label}</span></span>`);
