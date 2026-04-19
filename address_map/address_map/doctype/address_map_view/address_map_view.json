@@ -10,7 +10,11 @@
   "popup_line1_field",
   "popup_line2_field",
   "allow_assign",
-  "address_type_priority"
+  "address_type_priority",
+  "default_marker_section",
+  "default_marker_color",
+  "default_marker_col_break",
+  "default_marker_shape"
  ],
  "fields": [
   {
@@ -63,6 +67,28 @@
    "fieldname": "address_type_priority",
    "fieldtype": "Data",
    "label": "Address Type Priority"
+  },
+  {
+   "fieldname": "default_marker_section",
+   "fieldtype": "Section Break",
+   "label": "Marker Defaults"
+  },
+  {
+   "description": "Default marker color for this view. Leave blank to use the global default.",
+   "fieldname": "default_marker_color",
+   "fieldtype": "Color",
+   "label": "Default Color"
+  },
+  {
+   "fieldname": "default_marker_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Default marker shape for this view. Leave blank to use the global default.",
+   "fieldname": "default_marker_shape",
+   "fieldtype": "Select",
+   "label": "Default Shape",
+   "options": "\nCircle\nSquare\nDiamond\nPin\nTriangle\nStar"
   }
  ],
  "idx": 0,

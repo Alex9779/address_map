@@ -711,18 +711,20 @@ border-radius:2px;
 				const geojson = r.message || {};
 				const allow_assign = view.allow_assign !== false;
 				const doctype_label = view.label || view.doctype;
-				const defaultColor = this._settings.default_marker_color || "#3388ff";
-				const defaultShape = (this._settings.default_marker_shape || "circle").toLowerCase();
+				const globalDefaultColor = this._settings.default_marker_color || "#3388ff";
+				const globalDefaultShape = (this._settings.default_marker_shape || "circle").toLowerCase();
+				const viewDefaultColor = view.default_marker_color || globalDefaultColor;
+				const viewDefaultShape = (view.default_marker_shape || globalDefaultShape).toLowerCase();
 
 				if (this._view_layers.has(idx)) {
 					this.map.removeLayer(this._view_layers.get(idx));
 				}
-				const layer = this._build_marker_layer(geojson, { allow_assign });
+				const layer = this._build_marker_layer(geojson, { allow_assign, defaultColor: viewDefaultColor, defaultShape: viewDefaultShape });
 				this._view_layers.set(idx, layer);
 				if (this.map) layer.addTo(this.map);
 
 				this._view_legends.set(idx, [
-					{ label: doctype_label, color: defaultColor, shape: defaultShape, hide: false },
+					{ label: doctype_label, color: viewDefaultColor, shape: viewDefaultShape, hide: false },
 					...(geojson.legend || []),
 				]);
 				this._combine_and_render_legend();
@@ -795,9 +797,9 @@ border-radius:2px;
 		this.$legend_section.show();
 	}
 
-	_build_marker_layer(geojson, { allow_assign = true } = {}) {
-		const defaultColor = this._settings.default_marker_color || "#3388ff";
-		const defaultShape = (this._settings.default_marker_shape || "circle").toLowerCase();
+	_build_marker_layer(geojson, { allow_assign = true, defaultColor = null, defaultShape = null } = {}) {
+		defaultColor = defaultColor || this._settings.default_marker_color || "#3388ff";
+		defaultShape = (defaultShape || this._settings.default_marker_shape || "circle").toLowerCase();
 		const layer = L.featureGroup();
 		const page = this;
 

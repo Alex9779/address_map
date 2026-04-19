@@ -45,7 +45,9 @@ def get_views() -> list[dict]:
 		label = str(row.display_name or "").strip() or frappe._(doctype)
 		priority_raw = str(row.address_type_priority or "").strip()
 		address_type_priority = [t.strip() for t in priority_raw.split(",") if t.strip()] if priority_raw else []
-		result.append({"doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": str(row.display_name or "").strip(), "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority})
+		default_color = str(row.default_marker_color or "").strip()
+		default_shape = str(row.default_marker_shape or "").strip()
+		result.append({"doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": str(row.display_name or "").strip(), "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority, "default_marker_color": default_color, "default_marker_shape": default_shape})
 	return result
 
 

@@ -201,6 +201,21 @@ msgstr "Feldname, dessen Wert als fettgedruckte erste Zeile des Popups angezeigt
 msgid "Fieldname whose value is shown as the linked second line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
 msgstr "Feldname, dessen Wert als verlinkte zweite Zeile des Popups angezeigt wird (z.B. <code>customer_name</code>). Leer lassen, um den Dokumentnamen zu verwenden."
 
+msgid "Marker Defaults"
+msgstr "Marker-Standardwerte"
+
+msgid "Default Color"
+msgstr "Standardfarbe"
+
+msgid "Default marker color for this view. Leave blank to use the global default."
+msgstr "Standard-Marker-Farbe für diese Ansicht. Leer lassen, um den globalen Standard zu verwenden."
+
+msgid "Default Shape"
+msgstr "Standardform"
+
+msgid "Default marker shape for this view. Leave blank to use the global default."
+msgstr "Standard-Marker-Form für diese Ansicht. Leer lassen, um den globalen Standard zu verwenden."
+
 msgid "View Name"
 msgstr "Ansichtsname"
 

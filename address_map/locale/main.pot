@@ -260,6 +260,21 @@ msgstr ""
 msgid "Fieldname whose value is shown as the linked second line of the popup (e.g. <code>customer_name</code>). Leave blank to use the document name."
 msgstr ""
 
+msgid "Marker Defaults"
+msgstr ""
+
+msgid "Default Color"
+msgstr ""
+
+msgid "Default marker color for this view. Leave blank to use the global default."
+msgstr ""
+
+msgid "Default Shape"
+msgstr ""
+
+msgid "Default marker shape for this view. Leave blank to use the global default."
+msgstr ""
+
 #: address_map/address_map/doctype/address_map_rule/address_map_rule.json
 msgid "View Name"
 msgstr ""
