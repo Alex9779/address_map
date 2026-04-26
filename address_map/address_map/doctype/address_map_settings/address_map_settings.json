@@ -108,7 +108,7 @@
    "fieldname": "default_marker_shape",
    "fieldtype": "Select",
    "label": "Shape",
-   "options": "Circle\nSquare\nDiamond\nPin\nTriangle\nStar"
+   "options": "Circle\nSquare\nDiamond\nTriangle\nStar"
   },
   {
    "fieldname": "location_section",
@@ -130,7 +130,7 @@
    "fieldname": "location_shape",
    "fieldtype": "Select",
    "label": "Shape",
-   "options": "Circle\nSquare\nDiamond\nPin\nTriangle\nStar"
+   "options": "Circle\nSquare\nDiamond\nTriangle\nStar"
   },
   {
    "fieldname": "geocoding_tab",

@@ -502,20 +502,6 @@ ${__("Loading\u2026")}
 				fillOpacity: 0.9,
 			});
 		}
-		if (shape === "pin") {
-			const icon = L.divIcon({
-				className: "",
-				html: `<div style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">
-<img src="${L.Icon.Default.imagePath}marker-icon.png"
-     style="width:25px;height:41px;display:block;
-            filter:sepia(1) saturate(5) hue-rotate(${this._color_to_hue(color)}deg)">
-</div>`,
-				iconSize: [25, 41],
-				iconAnchor: [12, 41],
-				popupAnchor: [1, -34],
-			});
-			return L.marker(latlng, { icon });
-		}
 		// Square and Diamond
 		if (shape === "triangle") {
 			const icon = L.divIcon({
@@ -558,22 +544,6 @@ border-radius:2px;
 			popupAnchor: [0, -10],
 		});
 		return L.marker(latlng, { icon });
-	}
-
-	_color_to_hue(hex) {
-		const r = parseInt(hex.slice(1, 3), 16) / 255;
-		const g = parseInt(hex.slice(3, 5), 16) / 255;
-		const b = parseInt(hex.slice(5, 7), 16) / 255;
-		const max = Math.max(r, g, b),
-			min = Math.min(r, g, b);
-		let h = 0;
-		if (max !== min) {
-			const d = max - min;
-			if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-			else if (max === g) h = ((b - r) / d + 2) / 6;
-			else h = ((r - g) / d + 4) / 6;
-		}
-		return Math.round(h * 360 - 210 + 360) % 360;
 	}
 
 	// ──────────────────────────────────────────────────────────────
@@ -795,8 +765,6 @@ border-radius:2px;
 					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 18 18" style="display:inline-block;vertical-align:middle;"><polygon points="9,1 17,17 1,17" fill="${color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>`;
 				} else if (shape === "star") {
 					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" style="display:inline-block;vertical-align:middle;"><polygon points="10,1 12.9,7 19.5,7.6 14.5,12 16.2,18.5 10,15 3.8,18.5 5.5,12 0.5,7.6 7.1,7" fill="${color}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
-				} else if (shape === "pin") {
-					iconHtml = `<span style="display:inline-block;font-size:14px;line-height:1;">📍</span>`;
 				} else {
 					iconHtml = `<span style="display:inline-block;width:12px;height:12px;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px ${color};border-radius:2px;"></span>`;
 				}

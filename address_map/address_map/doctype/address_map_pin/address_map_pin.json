@@ -37,7 +37,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Shape",
-   "options": "Circle\nSquare\nDiamond\nPin\nTriangle\nStar"
+   "options": "Circle\nSquare\nDiamond\nTriangle\nStar"
   }
  ],
  "idx": 0,

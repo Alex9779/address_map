@@ -88,7 +88,7 @@
    "fieldname": "default_marker_shape",
    "fieldtype": "Select",
    "label": "Default Shape",
-   "options": "\nCircle\nSquare\nDiamond\nPin\nTriangle\nStar"
+   "options": "\nCircle\nSquare\nDiamond\nTriangle\nStar"
   }
  ],
  "idx": 0,
