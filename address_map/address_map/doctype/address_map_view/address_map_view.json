@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "field:display_name",
+ "autoname": "hash",
  "creation": "2026-03-28 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
