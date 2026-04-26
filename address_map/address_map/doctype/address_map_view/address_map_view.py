@@ -17,3 +17,8 @@ class AddressMapView(Document):
 			frappe.throw(
 				frappe._("Duplicate view name \"{0}\". Each view must have a unique Name.").format(self.display_name)
 			)
+
+	def before_save(self):
+		if not self.is_new() and self.display_name != self.name:
+			frappe.rename_doc(self.doctype, self.name, self.display_name, force=True)
+			self.name = self.display_name
