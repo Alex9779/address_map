@@ -60,6 +60,29 @@ def _can_access_view(view_name: str) -> bool:
 	return bool(user_roles.intersection(allowed_roles))
 
 
+def _get_default_marker_shape_for_view(view_name: str | None = None) -> str:
+	"""Return the marker shape fallback for a view, then global settings, then circle."""
+	default_shape = "circle"
+	try:
+		settings = frappe.get_cached_doc("Address Map Settings")
+		default_shape = str(settings.get("default_marker_shape") or default_shape).strip().lower()
+	except Exception:
+		pass
+
+	if not view_name:
+		return default_shape or "circle"
+
+	try:
+		view = frappe.get_cached_doc("Address Map View", view_name)
+		view_default_shape = str(view.get("default_marker_shape") or "").strip().lower()
+		if view_default_shape:
+			return view_default_shape
+	except Exception:
+		pass
+
+	return default_shape or "circle"
+
+
 @frappe.whitelist()
 def get_views() -> list[dict]:
 	"""Return the configured Address Map views.
@@ -168,6 +191,7 @@ def get_map_data(
 	line_fields = _get_popup_line_fields(resolved_view_name, doctype)
 	rules = _get_rules(resolved_view_name, doctype)
 	address_type_priority = _get_address_type_priority(resolved_view_name)
+	default_shape = _get_default_marker_shape_for_view(resolved_view_name)
 
 	if via:
 		assert via_field is not None  # guaranteed by _validate_level2_path
@@ -179,7 +203,7 @@ def get_map_data(
 		{
 			"label": str(r.legend_label).strip(),
 			"color": str(r.color or "").strip(),
-			"shape": (str(r.shape or "") or "circle").lower(),
+			"shape": (str(r.shape or "").strip() or default_shape).lower(),
 			"hide": bool(r.hide_marker),
 		}
 		for r in (rules or [])
