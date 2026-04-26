@@ -358,6 +358,14 @@ _FIELD_ALIASES: dict[str, str] = {
 	"seen": "_seen",
 }
 _system_fields = frozenset({"name", "owner", "modified_by", "_assign", "_comments", "_liked_by", "_seen"})
+_SYSTEM_FIELD_LABELS: dict[str, str] = {
+	"_assign": "Assigned To",
+	"_comments": "Comments",
+	"_liked_by": "Liked By",
+	"_seen": "Seen By",
+	"owner": "Owner",
+	"modified_by": "Modified By",
+}
 
 
 def _resolve_fieldname(fn: str) -> str:
@@ -389,6 +397,56 @@ def _resolve_me(val: str) -> str:
 	val = _me_field_re.sub(_sub, val)
 	val = val.replace("{me}", user)
 	return val
+
+
+def _match_assign(doctype: str, names: list[str], op: str, val: object) -> set[str]:
+	"""Filter document names by their _assign JSON array field in Python.
+
+	*op* and *val* must already be normalised the same way _build_marker_map does it:
+	  - "is set"/"is not set" → op="is", val="set"/"not set"
+	  - "in"/"not in"        → val is a list[str]
+	  - everything else      → val is a str
+	"""
+	rows = cast(list[_dict], frappe.db.get_all(
+		doctype,
+		filters=[["name", "in", names]],
+		fields=["name", "_assign"],
+	))
+	result: set[str] = set()
+	for r in rows:
+		try:
+			assignees: list[str] = json.loads(str(r._assign or "") or "[]") or []
+		except Exception:
+			assignees = []
+		match = False
+		if op == "is":
+			match = bool(assignees) if val == "set" else not bool(assignees)
+		elif op == "=":
+			match = str(val) in assignees
+		elif op == "!=":
+			match = str(val) not in assignees
+		elif op == "like":
+			pat = re.escape(str(val)).replace(r"\%", ".*").replace(r"\_", ".")
+			match = any(re.search(pat, a, re.IGNORECASE) for a in assignees)
+		elif op == "not like":
+			pat = re.escape(str(val)).replace(r"\%", ".*").replace(r"\_", ".")
+			match = not any(re.search(pat, a, re.IGNORECASE) for a in assignees)
+		elif op == "in":
+			val_set = set(val) if isinstance(val, list) else {str(val)}
+			match = bool(set(assignees) & val_set)
+		elif op == "not in":
+			val_set = set(val) if isinstance(val, list) else {str(val)}
+			match = not bool(set(assignees) & val_set)
+		elif op in (">", ">=", "<", "<="):
+			try:
+				count = len(assignees)
+				n = int(val)  # type: ignore[arg-type]
+				match = (count > n if op == ">" else count >= n if op == ">=" else count < n if op == "<" else count <= n)
+			except Exception:
+				pass
+		if match:
+			result.add(str(r.name))
+	return result
 
 
 def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -> dict[str, dict]:
@@ -494,11 +552,11 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 				if isinstance(val, str):
 					val = _resolve_me(val)
 
-				if fn and op:
+				if fn == "_assign":
+					# _assign stores a JSON array; standard ORM filters don't work against it.
+					matched = _match_assign(doctype, unresolved, op, val)
+				elif fn and op:
 					filter_entry: list | None = [fn, op, val]
-				else:
-					filter_entry = None
-				if filter_entry is not None:
 					matched = set(cast(list[str], frappe.db.get_all(
 						doctype,
 						filters=[["name", "in", unresolved], filter_entry],  # type: ignore[arg-type]
@@ -700,6 +758,18 @@ def _get_popup_fields(display_name: str | None, doctype: str) -> list[dict]:
 			continue
 
 		# Regular fieldname (no dot)
+		actual_fn = _resolve_fieldname(fn)
+		if actual_fn in _system_fields:
+			# System fields are not in the meta but can still be fetched.
+			# _assign stores a JSON array; everything else is a plain string.
+			safe.append({
+				"fieldname": fn,
+				"actual_fieldname": actual_fn,
+				"label": lbl or _SYSTEM_FIELD_LABELS.get(actual_fn, fn),
+				"fieldtype": "_assign" if actual_fn == "_assign" else "Data",
+				"is_system_field": True,
+			})
+			continue
 		field = meta.get_field(fn)
 		if not field or field.fieldtype in _POPUP_SKIP_TYPES:
 			continue
@@ -720,7 +790,8 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 
 	# Columns to fetch from the main doctype: regular popup fieldnames + line fields +
 	# link_field columns required by linked popup fields
-	main_fieldnames: list[str] = [f["fieldname"] for f in regular_popup]
+	# System fields (e.g. _assign) use actual_fieldname for the DB column.
+	main_fieldnames: list[str] = [f.get("actual_fieldname") or f["fieldname"] for f in regular_popup]
 	for key in ("popup_line1_field", "popup_line2_field"):
 		line_cfg = (line_fields or {}).get(key)
 		if not line_cfg:
@@ -760,7 +831,8 @@ def _enrich_rows(rows: list[_dict], doctype: str, popup_fields: list[dict] | Non
 	for row in rows:
 		extra = doc_map.get(str(row.link_name or ""), _dict())
 		for f in regular_popup:
-			row[f"_extra_{f['fieldname']}"] = extra.get(f["fieldname"], "")
+			fetch_fn = f.get("actual_fieldname") or f["fieldname"]
+			row[f"_extra_{f['fieldname']}"] = extra.get(fetch_fn, "")
 		for key, prefix in (("popup_line1_field", "_popup_line1"), ("popup_line2_field", "_popup_line2")):
 			line_cfg = (line_fields or {}).get(key)
 			if not line_cfg:
@@ -900,6 +972,22 @@ def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None
 				if items:
 					lbl = escape_html(str(f.get("label") or f["fieldname"]))
 					val_html = "<br>".join(escape_html(v) for v in items)
+					extra_rows += (
+						f'<tr>'
+						f'<td style="color:var(--text-muted);padding:1px 4px 1px 0;white-space:nowrap;vertical-align:top">{lbl}</td>'
+						f'<td style="padding:1px 0">{val_html}</td>'
+						f'</tr>'
+					)
+				continue
+			if f.get("fieldtype") == "_assign":
+				# _assign stores a JSON-encoded list of assignee email addresses.
+				try:
+					assignees: list[str] = json.loads(str(val or "") or "[]") or []
+				except Exception:
+					assignees = []
+				if assignees:
+					lbl = escape_html(str(f.get("label") or f["fieldname"]))
+					val_html = ", ".join(escape_html(a) for a in assignees if a)
 					extra_rows += (
 						f'<tr>'
 						f'<td style="color:var(--text-muted);padding:1px 4px 1px 0;white-space:nowrap;vertical-align:top">{lbl}</td>'
