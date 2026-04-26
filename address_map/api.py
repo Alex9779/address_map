@@ -12,6 +12,54 @@ from frappe.utils.data import escape_html
 _dict = frappe._dict
 
 
+def _is_system_manager() -> bool:
+	return "System Manager" in set(cast(list[str], frappe.get_roles()))
+
+
+def _get_view_allowed_roles(view_name: str) -> set[str]:
+	"""Return the set of roles explicitly allowed for an Address Map View."""
+	if not view_name:
+		return set()
+
+	try:
+		rows = cast(
+			list[_dict],
+			frappe.get_all(
+				"Address Map Role",
+				filters={"parent": view_name, "parenttype": "Address Map View", "parentfield": "allowed_roles"},
+				fields=["role"],
+			),
+		)
+	except Exception:
+		# Keep behavior safe when the child table is unavailable/misconfigured.
+		return set()
+
+	allowed = {
+		str(row.get("role") or "").strip()
+		for row in rows
+		if str(row.get("role") or "").strip()
+	}
+	return allowed
+
+
+def _can_access_view(view_name: str) -> bool:
+	"""Enforce role-based view access.
+
+	- System Managers can always access views.
+	- If `allowed_roles` is set, user must have at least one of those roles.
+	- If no role is set, only System Manager can access the view.
+	"""
+	if _is_system_manager():
+		return True
+
+	allowed_roles = _get_view_allowed_roles(view_name)
+	if not allowed_roles:
+		return False
+
+	user_roles = set(cast(list[str], frappe.get_roles()))
+	return bool(user_roles.intersection(allowed_roles))
+
+
 @frappe.whitelist()
 def get_views() -> list[dict]:
 	"""Return the configured Address Map views.
@@ -41,6 +89,10 @@ def get_views() -> list[dict]:
 
 	result = []
 	for row in rows:
+		view_name = str(row.name or "").strip()
+		if not view_name or not _can_access_view(view_name):
+			continue
+
 		doctype = str(row.doctype_name or "").strip()
 		via = str(row.via_doctype or "").strip() or None
 		if not doctype:
@@ -60,7 +112,7 @@ def get_views() -> list[dict]:
 		address_type_priority = [t.strip() for t in priority_raw.split(",") if t.strip()] if priority_raw else []
 		default_color = str(row.default_marker_color or "").strip()
 		default_shape = str(row.default_marker_shape or "").strip()
-		result.append({"name": str(row.name), "doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": display_name, "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority, "default_marker_color": default_color, "default_marker_shape": default_shape})
+		result.append({"name": view_name, "doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": display_name, "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority, "default_marker_color": default_color, "default_marker_shape": default_shape})
 	return result
 
 
@@ -302,7 +354,7 @@ def _resolve_view_name(
 	"""Resolve an Address Map View name from explicit name, display name or doctype+via."""
 	if view_name:
 		name = str(view_name).strip()
-		if name and frappe.db.exists("Address Map View", name):
+		if name and frappe.db.exists("Address Map View", name) and _can_access_view(name):
 			return name
 
 	if display_name:
@@ -316,7 +368,9 @@ def _resolve_view_name(
 			),
 		)
 		if rows:
-			return str(rows[0].name)
+			resolved = str(rows[0].name)
+			if _can_access_view(resolved):
+				return resolved
 
 	filters: dict[str, str] = {"doctype_name": doctype}
 	if via:
@@ -331,7 +385,10 @@ def _resolve_view_name(
 		),
 	)
 	if rows:
-		return str(rows[0].name)
+		for row in rows:
+			resolved = str(row.name)
+			if _can_access_view(resolved):
+				return resolved
 	return None
 
 

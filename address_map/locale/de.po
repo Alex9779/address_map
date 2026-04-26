@@ -17,6 +17,21 @@ msgstr "Adresskarte"
 msgid "Address Map View"
 msgstr "Adresskartenansicht"
 
+msgid "Address Map Role"
+msgstr "Adresskartenrolle"
+
+msgid "Address Map Rule"
+msgstr "Adresskartenregel"
+
+msgid "Address Map Popup Field"
+msgstr "Adresskarten-Popup-Feld"
+
+msgid "DocType"
+msgstr "DocType"
+
+msgid "Name"
+msgstr "Name"
+
 msgid "Manage Views"
 msgstr "Ansichten verwalten"
 
@@ -129,11 +144,17 @@ msgstr "Regeln"
 msgid "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order per view; the first match wins."
 msgstr "Eine Markerfarbe (und optional Form) basierend auf einem Feldwert anwenden. Regeln werden in Reihenfolge pro Ansicht ausgewertet; die erste Übereinstimmung gewinnt."
 
+msgid "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order; the first match wins."
+msgstr "Eine Markerfarbe (und optional Form) basierend auf einem Feldwert anwenden. Regeln werden der Reihe nach ausgewertet; die erste Übereinstimmung gewinnt."
+
 msgid "Popup Fields"
 msgstr "Popup-Felder"
 
 msgid "Add rows per view to include extra fields in the map marker popup. Fields are shown below the address block."
 msgstr "Zeilen pro Ansicht hinzufügen, um zusätzliche Felder im Popup des Kartenmarkers anzuzeigen. Felder werden unterhalb des Adressblocks angezeigt."
+
+msgid "Add fields to include in the map marker popup below the address block."
+msgstr "Felder hinzufügen, die im Marker-Popup unter dem Adressblock angezeigt werden."
 
 msgid "Fixed Pins"
 msgstr "Feste Markierungen"
@@ -177,6 +198,9 @@ msgstr "Einen Hintergrundjob in die Warteschlange stellen, der alle Adressen ohn
 msgid "Name shown in the map view selector and used in rules. Must be unique across all rows."
 msgstr "Name, der im Kartenansicht-Auswähler und in Regeln verwendet wird. Muss in allen Zeilen eindeutig sein."
 
+msgid "Name shown in the map view selector."
+msgstr "Name, der im Kartenansicht-Auswähler angezeigt wird."
+
 msgid "Via DocType"
 msgstr "Über DocType"
 
@@ -197,6 +221,18 @@ msgstr "Schaltfläche „Zuweisen / Zuweisung aufheben" im Marker-Popup dieser A
 
 msgid "Address Type Priority"
 msgstr "Adresstyp-Priorität"
+
+msgid "View Access"
+msgstr "Ansichtszugriff"
+
+msgid "Allowed Roles"
+msgstr "Erlaubte Rollen"
+
+msgid "If roles are set, only users with at least one listed role can use this view. If empty, only System Manager can use it."
+msgstr "Wenn Rollen gesetzt sind, können nur Benutzer mit mindestens einer aufgeführten Rolle diese Ansicht verwenden. Wenn leer, kann nur der System Manager diese Ansicht verwenden."
+
+msgid "Role"
+msgstr "Rolle"
 
 msgid "Comma-separated address types in priority order (e.g. <code>Billing, Shipping</code>). Listed types are preferred first; any remaining types follow in the default Frappe order. Leave blank to use only the default order."
 msgstr "Kommagetrennte Adresstypen in Prioritätsreihenfolge (z. B. <code>Billing, Shipping</code>). Aufgeführte Typen werden bevorzugt; alle übrigen Typen folgen in der Standard-Reihenfolge von Frappe. Leer lassen, um ausschließlich die Standard-Reihenfolge zu verwenden."
@@ -236,6 +272,9 @@ msgstr "Auszuwertendes Feld, z.B. <code>status</code>. Punktnotation verwenden, 
 
 msgid "Operator"
 msgstr "Operator"
+
+msgid "=\n!=\n>\n<\n>=\n<=\nlike\nnot like\nin\nnot in\nis set\nis not set"
+msgstr "=\n!=\n>\n<\n>=\n<=\nlike\nnot like\nin\nnot in\nis set\nis not set"
 
 msgid "Value"
 msgstr "Wert"
@@ -281,6 +320,12 @@ msgstr "Farbe"
 
 msgid "Shape"
 msgstr "Form"
+
+msgid "Circle\nSquare\nDiamond\nTriangle\nStar"
+msgstr "Circle\nSquare\nDiamond\nTriangle\nStar"
+
+msgid "Legacy View Name"
+msgstr "Legacy-Ansichtsname"
 
 #. Geocoordinates section on the Address form
 msgid "Geocoordinates"

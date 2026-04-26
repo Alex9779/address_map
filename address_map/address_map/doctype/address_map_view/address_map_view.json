@@ -12,10 +12,12 @@
   "popup_line2_field",
   "allow_assign",
   "address_type_priority",
-    "rules_section",
-    "rules",
-    "popup_section",
-    "popup_fields",
+  "allowed_roles_section",
+  "allowed_roles",
+  "rules_section",
+  "rules",
+  "popup_section",
+  "popup_fields",
   "default_marker_section",
   "default_marker_color",
   "default_marker_col_break",
@@ -74,30 +76,42 @@
    "fieldtype": "Data",
    "label": "Address Type Priority"
   },
-    {
-     "fieldname": "rules_section",
-     "fieldtype": "Section Break",
-     "label": "Rules"
-    },
-    {
-     "description": "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order; the first match wins.",
-     "fieldname": "rules",
-     "fieldtype": "Table",
-     "label": "Rules",
-     "options": "Address Map Rule"
-    },
-    {
-     "fieldname": "popup_section",
-     "fieldtype": "Section Break",
-     "label": "Popup Fields"
-    },
-    {
-     "description": "Add fields to include in the map marker popup below the address block.",
-     "fieldname": "popup_fields",
-     "fieldtype": "Table",
-     "label": "Popup Fields",
-     "options": "Address Map Popup Field"
-    },
+  {
+   "fieldname": "allowed_roles_section",
+   "fieldtype": "Section Break",
+   "label": "View Access"
+  },
+  {
+    "description": "If roles are set, only users with at least one listed role can use this view. If empty, only System Manager can use it.",
+   "fieldname": "allowed_roles",
+   "fieldtype": "Table",
+   "label": "Allowed Roles",
+    "options": "Address Map Role"
+  },
+  {
+   "fieldname": "rules_section",
+   "fieldtype": "Section Break",
+   "label": "Rules"
+  },
+  {
+   "description": "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order; the first match wins.",
+   "fieldname": "rules",
+   "fieldtype": "Table",
+   "label": "Rules",
+   "options": "Address Map Rule"
+  },
+  {
+   "fieldname": "popup_section",
+   "fieldtype": "Section Break",
+   "label": "Popup Fields"
+  },
+  {
+   "description": "Add fields to include in the map marker popup below the address block.",
+   "fieldname": "popup_fields",
+   "fieldtype": "Table",
+   "label": "Popup Fields",
+   "options": "Address Map Popup Field"
+  },
   {
    "fieldname": "default_marker_section",
    "fieldtype": "Section Break",
