@@ -14,18 +14,30 @@ _dict = frappe._dict
 
 @frappe.whitelist()
 def get_views() -> list[dict]:
-	"""Return the views configured in Address Map Settings.
+	"""Return the configured Address Map views.
 
 	Each row may optionally specify a via_doctype to route through a Level-1
 	DocType (e.g. Sales Invoice → Customer → Address).
 
-	Each entry: {doctype, via, via_field, label}
+	Each entry: {name, doctype, via, via_field, label}
 	"""
-	# frappe.db.get_all silently strips child-table fields that are not in the
-	# default field set when no parent_doctype context is available at the ORM
-	# layer.  Reading the parent document directly avoids this problem.
-	settings = frappe.get_cached_doc("Address Map Settings")
-	rows = cast(list[_dict], settings.get("doctypes") or [])
+	rows = cast(
+		list[_dict],
+		frappe.db.get_all(
+			"Address Map View",
+			fields=[
+				"name",
+				"display_name",
+				"doctype_name",
+				"via_doctype",
+				"allow_assign",
+				"address_type_priority",
+				"default_marker_color",
+				"default_marker_shape",
+			],
+			order_by="modified desc",
+		),
+	)
 
 	result = []
 	for row in rows:
@@ -42,12 +54,13 @@ def get_views() -> list[dict]:
 			via_field = _find_via_field(doctype, via)
 			if not via_field:
 				continue  # skip invalid / unresolvable paths
-		label = str(row.display_name or "").strip() or frappe._(doctype)
+		display_name = str(row.display_name or "").strip()
+		label = frappe._(display_name) if display_name else frappe._(doctype)
 		priority_raw = str(row.address_type_priority or "").strip()
 		address_type_priority = [t.strip() for t in priority_raw.split(",") if t.strip()] if priority_raw else []
 		default_color = str(row.default_marker_color or "").strip()
 		default_shape = str(row.default_marker_shape or "").strip()
-		result.append({"doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": str(row.display_name or "").strip(), "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority, "default_marker_color": default_color, "default_marker_shape": default_shape})
+		result.append({"name": str(row.name), "doctype": doctype, "via": via, "via_field": via_field, "label": label, "display_name": display_name, "allow_assign": bool(row.allow_assign), "address_type_priority": address_type_priority, "default_marker_color": default_color, "default_marker_shape": default_shape})
 	return result
 
 
@@ -57,6 +70,7 @@ def get_map_data(
 	via: str | None = None,
 	via_field: str | None = None,
 	filters: str | list | None = None,
+	view_name: str | None = None,
 	display_name: str | None = None,
 ) -> dict:
 	"""Return a GeoJSON FeatureCollection of geocoded addresses reachable from `doctype`.
@@ -97,10 +111,11 @@ def get_map_data(
 			)
 			allowed_names = set(names)
 
-	popup_fields = _get_popup_fields(display_name, doctype)
-	line_fields = _get_popup_line_fields(display_name, doctype)
-	rules = _get_rules(display_name, doctype)
-	address_type_priority = _get_address_type_priority(display_name)
+	resolved_view_name = _resolve_view_name(view_name, display_name, doctype, via)
+	popup_fields = _get_popup_fields(resolved_view_name, doctype)
+	line_fields = _get_popup_line_fields(resolved_view_name, doctype)
+	rules = _get_rules(resolved_view_name, doctype)
+	address_type_priority = _get_address_type_priority(resolved_view_name)
 
 	if via:
 		assert via_field is not None  # guaranteed by _validate_level2_path
@@ -197,7 +212,7 @@ def _validate_level2_path(doctype: str, via: str, via_field: str | None):
 	# doctype+via must be a configured combination
 	configured = frappe.db.get_all(
 		"Address Map View",
-		filters={"parent": "Address Map Settings", "parentfield": "doctypes", "doctype_name": doctype, "via_doctype": via},
+		filters={"doctype_name": doctype, "via_doctype": via},
 		pluck="name",
 	)
 	if not configured:
@@ -278,15 +293,57 @@ _POPUP_SKIP_TYPES: frozenset[str] = frozenset({
 })
 
 
-def _get_rules(display_name: str | None, doctype: str) -> list[_dict]:
-	"""Return validated rules for the given view name."""
-	if not display_name:
+def _resolve_view_name(
+	view_name: str | None,
+	display_name: str | None,
+	doctype: str,
+	via: str | None = None,
+) -> str | None:
+	"""Resolve an Address Map View name from explicit name, display name or doctype+via."""
+	if view_name:
+		name = str(view_name).strip()
+		if name and frappe.db.exists("Address Map View", name):
+			return name
+
+	if display_name:
+		rows = cast(
+			list[_dict],
+			frappe.db.get_all(
+				"Address Map View",
+				filters={"display_name": str(display_name).strip()},
+				fields=["name"],
+				limit=1,
+			),
+		)
+		if rows:
+			return str(rows[0].name)
+
+	filters: dict[str, str] = {"doctype_name": doctype}
+	if via:
+		filters["via_doctype"] = via
+	rows = cast(
+		list[_dict],
+		frappe.db.get_all(
+			"Address Map View",
+			filters=filters,
+			fields=["name"],
+			limit=1,
+		),
+	)
+	if rows:
+		return str(rows[0].name)
+	return None
+
+
+def _get_rules(view_name: str | None, doctype: str) -> list[_dict]:
+	"""Return validated rules for the given view."""
+	if not view_name:
 		return []
 	rows = cast(
 		list[_dict],
 		frappe.get_all(
 			"Address Map Rule",
-			filters={"parent": "Address Map Settings", "display_name": display_name},
+			filters={"parent": view_name, "parenttype": "Address Map View", "parentfield": "rules"},
 			fields=["name", "fieldname", "operator", "value", "color", "shape", "hide_marker", "legend_label"],
 			order_by="idx",
 		),
@@ -578,17 +635,17 @@ def _build_marker_map(doctype: str, link_names: list[str], rules: list[_dict]) -
 	return marker_map
 
 
-def _get_address_type_priority(display_name: str | None) -> list[str]:
+def _get_address_type_priority(view_name: str | None) -> list[str]:
 	"""Return the ordered address type list for the given view (from the comma-separated field).
 
 	Returns an empty list when no priority is configured, which signals _pick_best_address
 	to fall back to the default Frappe address type order.
 	"""
-	if not display_name:
+	if not view_name:
 		return []
-	rows = frappe.get_all(
+	rows = frappe.db.get_all(
 		"Address Map View",
-		filters={"parent": "Address Map Settings", "parentfield": "doctypes", "display_name": display_name},
+		filters={"name": view_name},
 		fields=["address_type_priority"],
 		limit=1,
 	)
@@ -643,17 +700,17 @@ def _pick_best_address(rows: list[_dict], priority: list[str] | None) -> list[_d
 	return result
 
 
-def _get_popup_line_fields(display_name: str | None, doctype: str) -> dict:
+def _get_popup_line_fields(view_name: str | None, doctype: str) -> dict:
 	"""Return validated popup_line1_field / popup_line2_field for the given view.
 
 	Supports dot-notation (e.g. "customer.customer_name") to traverse a single
 	Link field on the source doctype.
 	"""
-	if not display_name:
+	if not view_name:
 		return {}
-	rows = frappe.get_all(
+	rows = frappe.db.get_all(
 		"Address Map View",
-		filters={"parent": "Address Map Settings", "parentfield": "doctypes", "display_name": display_name},
+		filters={"name": view_name},
 		fields=["popup_line1_field", "popup_line2_field"],
 		limit=1,
 	)
@@ -691,13 +748,13 @@ def _get_popup_line_fields(display_name: str | None, doctype: str) -> dict:
 	return result
 
 
-def _get_popup_fields(display_name: str | None, doctype: str) -> list[dict]:
-	"""Return validated popup field configs for the given view from settings."""
-	if not display_name:
+def _get_popup_fields(view_name: str | None, doctype: str) -> list[dict]:
+	"""Return validated popup field configs for the given view."""
+	if not view_name:
 		return []
 	rows = frappe.get_all(
 		"Address Map Popup Field",
-		filters={"parent": "Address Map Settings", "view_name": display_name},
+		filters={"parent": view_name, "parenttype": "Address Map View", "parentfield": "popup_fields"},
 		fields=["fieldname", "label"],
 		order_by="idx",
 	)

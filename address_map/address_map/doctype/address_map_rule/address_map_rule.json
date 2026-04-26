@@ -4,7 +4,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "display_name",
   "fieldname",
   "operator",
   "value",
@@ -14,14 +13,6 @@
   "legend_label"
  ],
  "fields": [
-  {
-   "description": "Must match the Name of a view exactly as configured in the Views list.",
-   "fieldname": "display_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "View Name",
-   "reqd": 1
-  },
   {
    "description": "Field to evaluate, e.g. <code>status</code>. Use dot-notation to traverse a Link or child table field, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. System field aliases: <code>assigned</code>, <code>owner</code>, <code>modified_by</code>, <code>comments</code>, <code>liked_by</code>, <code>seen</code>.",
    "fieldname": "fieldname",
@@ -67,6 +58,12 @@
    "fieldname": "legend_label",
    "fieldtype": "Data",
    "label": "Legend Label"
+    },
+    {
+     "fieldname": "display_name",
+     "fieldtype": "Data",
+     "hidden": 1,
+     "label": "Legacy View Name"
   }
  ],
  "idx": 0,

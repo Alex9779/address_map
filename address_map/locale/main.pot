@@ -163,6 +163,12 @@ msgstr ""
 msgid "Address Map Settings"
 msgstr ""
 
+msgid "Address Map View"
+msgstr ""
+
+msgid "Manage Views"
+msgstr ""
+
 msgid "Views"
 msgstr ""
 

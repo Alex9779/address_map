@@ -598,7 +598,7 @@ border-radius:2px;
 					const $item = $(el);
 					const idx = parseInt($item.data("idx"));
 					const view = this._views[idx];
-					if (view && defs.some((d) => d === view.label || d === view.doctype)) {
+					if (view && defs.some((d) => d === view.label || d === view.display_name || d === view.doctype)) {
 						$item.data("checked", true);
 						this._set_view_checkbox_visual($item, true);
 						this._on_view_toggle(idx, true);
@@ -677,6 +677,7 @@ border-radius:2px;
 					via: view.via || null,
 					via_field: view.via_field || null,
 					filters,
+					view_name: view.name || null,
 					display_name: view.display_name || null,
 				},
 			})
@@ -829,7 +830,7 @@ border-radius:2px;
 					const $item = $(el);
 					const idx = parseInt($item.data("idx"));
 					const view = this._views[idx];
-					if (view && (view.label === incoming_doctype || view.doctype === incoming_doctype)) {
+						if (view && (view.label === incoming_doctype || view.display_name === incoming_doctype || view.doctype === incoming_doctype)) {
 						if (!$item.data("checked")) {
 							this._pending_filters = incoming_filters;
 							$item.data("checked", true);

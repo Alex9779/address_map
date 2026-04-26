@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "autoname": "field:display_name",
  "creation": "2026-03-28 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -11,6 +12,10 @@
   "popup_line2_field",
   "allow_assign",
   "address_type_priority",
+    "rules_section",
+    "rules",
+    "popup_section",
+    "popup_fields",
   "default_marker_section",
   "default_marker_color",
   "default_marker_col_break",
@@ -26,12 +31,13 @@
    "reqd": 1
   },
   {
-   "description": "Name shown in the map view selector and used in rules. Must be unique across all rows.",
+    "description": "Name shown in the map view selector.",
    "fieldname": "display_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Name",
-   "reqd": 1
+    "reqd": 1,
+    "unique": 1
   },
   {
    "description": "The DocType that holds the address (e.g. Customer, Supplier). Leave blank if this DocType itself holds the address.",
@@ -68,6 +74,30 @@
    "fieldtype": "Data",
    "label": "Address Type Priority"
   },
+    {
+     "fieldname": "rules_section",
+     "fieldtype": "Section Break",
+     "label": "Rules"
+    },
+    {
+     "description": "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order; the first match wins.",
+     "fieldname": "rules",
+     "fieldtype": "Table",
+     "label": "Rules",
+     "options": "Address Map Rule"
+    },
+    {
+     "fieldname": "popup_section",
+     "fieldtype": "Section Break",
+     "label": "Popup Fields"
+    },
+    {
+     "description": "Add fields to include in the map marker popup below the address block.",
+     "fieldname": "popup_fields",
+     "fieldtype": "Table",
+     "label": "Popup Fields",
+     "options": "Address Map Popup Field"
+    },
   {
    "fieldname": "default_marker_section",
    "fieldtype": "Section Break",
@@ -92,16 +122,29 @@
   }
  ],
  "idx": 0,
- "istable": 1,
  "links": [],
  "modified": "2026-03-28 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Address Map",
  "name": "Address Map View",
  "owner": "Administrator",
- "permissions": [],
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
  "sort_field": "idx",
  "sort_order": "ASC",
  "states": [],
+ "title_field": "display_name",
  "track_changes": 0
 }

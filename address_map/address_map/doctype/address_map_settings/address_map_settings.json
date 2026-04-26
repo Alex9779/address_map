@@ -6,11 +6,6 @@
  "field_order": [
   "doctypes_tab",
   "default_doctype",
-  "doctypes",
-  "rules_section",
-  "rules",
-  "popup_section",
-  "popup_fields",
   "pins_tab",
   "pins",
   "markers_tab",
@@ -40,37 +35,6 @@
    "fieldname": "default_doctype",
    "fieldtype": "Data",
    "label": "Default View(s)"
-  },
-  {
-   "fieldname": "doctypes",
-   "fieldtype": "Table",
-   "label": "Views",
-   "options": "Address Map View",
-   "description": "Views shown in the map selector. Each row must have a unique Name. Set Via DocType when the DocType does not hold the address directly (e.g. Sales Invoice \u2192 Customer)."
-  },
-  {
-   "fieldname": "rules_section",
-   "fieldtype": "Section Break",
-   "label": "Rules"
-  },
-  {
-   "description": "Apply a marker color (and optionally shape) based on a field value. Rules are evaluated in order per view; the first match wins.",
-   "fieldname": "rules",
-   "fieldtype": "Table",
-   "label": "Rules",
-   "options": "Address Map Rule"
-  },
-  {
-   "fieldname": "popup_section",
-   "fieldtype": "Section Break",
-   "label": "Popup Fields"
-  },
-  {
-   "description": "Add rows per view to include extra fields in the map marker popup. Fields are shown below the address block.",
-   "fieldname": "popup_fields",
-   "fieldtype": "Table",
-   "label": "Popup Fields",
-   "options": "Address Map Popup Field"
   },
   {
    "fieldname": "pins_tab",

@@ -2,6 +2,12 @@
 // License: GPLv3
 
 frappe.ui.form.on("Address Map Settings", {
+	refresh(frm) {
+		frm.add_custom_button(__("Manage Views"), () => {
+			frappe.set_route("List", "Address Map View");
+		});
+	},
+
 	geocode_all(frm) {
 		frappe.confirm(
 			__(

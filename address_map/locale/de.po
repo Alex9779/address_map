@@ -14,6 +14,12 @@ msgstr ""
 msgid "Address Map"
 msgstr "Adresskarte"
 
+msgid "Address Map View"
+msgstr "Adresskartenansicht"
+
+msgid "Manage Views"
+msgstr "Ansichten verwalten"
+
 msgid "Open in Address Map"
 msgstr "In Adresskarte öffnen"
 

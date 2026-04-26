@@ -4,19 +4,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "view_name",
   "fieldname",
   "label"
  ],
  "fields": [
-  {
-   "description": "Must match the Name of a view exactly as configured in the Views list.",
-   "fieldname": "view_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "View Name",
-   "reqd": 1
-  },
   {
    "description": "Fieldname exactly as defined on the DocType (e.g. <code>customer_name</code>). Use dot-notation to show a field from a linked document or child table, e.g. <code>customer.territory</code> or <code>service_technicians.technician</code>. Open the DocType form and inspect the fieldname column.",
    "fieldname": "fieldname",
@@ -31,6 +22,12 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Label Override"
+    },
+    {
+     "fieldname": "view_name",
+     "fieldtype": "Data",
+     "hidden": 1,
+     "label": "Legacy View Name"
   }
  ],
  "idx": 0,
