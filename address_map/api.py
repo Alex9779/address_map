@@ -1060,6 +1060,24 @@ def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None
 	link_name = str(row.link_name or "")
 	link_title = str(row.link_title or link_name)
 
+	# Plain-text address for clipboard copy
+	_addr_parts = [
+		str(row.get("address_line1") or ""),
+		str(row.get("address_line2") or ""),
+		str(row.get("city") or ""),
+		str(row.get("state") or ""),
+		str(row.get("pincode") or ""),
+		str(row.get("country") or ""),
+	]
+	address_text = ", ".join(p.strip() for p in _addr_parts if p.strip())
+	address_copy_html = (
+		f'<a class="address-map-copy-address" href="#" '
+		f'data-address="{escape_html(address_text)}" '
+		f'style="color:inherit;text-decoration:none;cursor:pointer;" '
+		f'title="{escape_html(frappe._("Copy address"))}">'
+		f'{address_html}</a>'
+	)
+
 	# Determine assignment server-side where frappe.session.user is authoritative.
 	# Only _assign (explicit "Assign To") is checked, not owner (creator).
 	me = frappe.session.user or ""
@@ -1098,7 +1116,7 @@ def _to_feature(row: _dict, doctype: str, popup_fields: list[dict] | None = None
 	popup_html = (
 		f'<strong><a href="{line1_url}" target="_blank">{escape_html(line1)}</a></strong><br>'
 		f'{line2_html}'
-		f'<hr style="margin:4px 0">{address_html}'
+		f'<hr style="margin:4px 0">{address_copy_html}'
 	)
 	if popup_fields:
 		extra_rows = ""

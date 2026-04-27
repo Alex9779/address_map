@@ -123,6 +123,16 @@ msgstr ""
 msgid "Assign to me"
 msgstr ""
 
+#. Tooltip on the address link in the marker popup
+#: address_map/api.py
+msgid "Copy address"
+msgstr ""
+
+#. Alert after address is copied to clipboard
+#: address_map/address_map/page/address_map/address_map.js
+msgid "Address copied to clipboard"
+msgstr ""
+
 #. Alert after geocode-all job is enqueued; {0} = count
 #: address_map/address_map/doctype/address_map_settings/address_map_settings.js
 msgid "{0} address(es) queued for geocoding."

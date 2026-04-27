@@ -473,6 +473,22 @@ ${__("Loading\u2026")}
 					}
 				});
 			}
+			// Copy address to clipboard when the address link is clicked
+			const copyLinks = el.querySelectorAll(".address-map-copy-address");
+			copyLinks.forEach((link) => {
+				link.addEventListener("click", function (evt) {
+					evt.preventDefault();
+					const text = link.dataset.address || "";
+					if (!text) return;
+					(navigator.clipboard
+						? navigator.clipboard.writeText(text)
+						: Promise.reject()
+					).catch(() => frappe.utils.copy_to_clipboard(text))
+					.then(() => {
+						frappe.show_alert({ message: __("Address copied to clipboard"), indicator: "green" });
+					});
+				});
+			});
 		});
 		// Click: toggle pinned state
 		marker.on("click", function (e) {

@@ -101,6 +101,12 @@ msgstr "Zuweisung aufheben"
 msgid "Assign to me"
 msgstr "Mir zuweisen"
 
+msgid "Copy address"
+msgstr "Adresse kopieren"
+
+msgid "Address copied to clipboard"
+msgstr "Adresse in die Zwischenablage kopiert"
+
 msgid "{0} address(es) queued for geocoding."
 msgstr "{0} Adresse(n) zur Geokodierung in die Warteschlange gestellt."
 
