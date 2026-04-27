@@ -246,6 +246,15 @@ msgstr ""
 msgid "Name shown in the map view selector and used in rules. Must be unique across all rows."
 msgstr ""
 
+msgid "Name shown in the map view selector."
+msgstr ""
+
+msgid "Display Index"
+msgstr ""
+
+msgid "Controls the order of this view in the map view selector. Lower numbers appear first. Leave blank to sort after numbered views."
+msgstr ""
+
 msgid "Via DocType"
 msgstr ""
 

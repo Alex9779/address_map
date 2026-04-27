@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "display_name",
+  "display_index",
   "doctype_name",
   "via_doctype",
   "popup_line1_field",
@@ -40,6 +41,13 @@
    "label": "Name",
     "reqd": 1,
     "unique": 1
+  },
+  {
+   "description": "Controls the order of this view in the map view selector. Lower numbers appear first. Leave blank to sort after numbered views.",
+   "fieldname": "display_index",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Display Index"
   },
   {
    "description": "The DocType that holds the address (e.g. Customer, Supplier). Leave blank if this DocType itself holds the address.",
@@ -156,7 +164,7 @@
    "write": 1
   }
  ],
- "sort_field": "idx",
+ "sort_field": "display_index",
  "sort_order": "ASC",
  "states": [],
  "title_field": "display_name",

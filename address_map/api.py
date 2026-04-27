@@ -99,6 +99,7 @@ def get_views() -> list[dict]:
 			fields=[
 				"name",
 				"display_name",
+				"display_index",
 				"doctype_name",
 				"via_doctype",
 				"allow_assign",
@@ -106,7 +107,7 @@ def get_views() -> list[dict]:
 				"default_marker_color",
 				"default_marker_shape",
 			],
-			order_by="modified desc",
+			order_by="IFNULL(display_index, 2147483647) asc, display_name asc",
 		),
 	)
 

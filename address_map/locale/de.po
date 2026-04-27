@@ -207,6 +207,12 @@ msgstr "Name, der im Kartenansicht-Auswähler und in Regeln verwendet wird. Muss
 msgid "Name shown in the map view selector."
 msgstr "Name, der im Kartenansicht-Auswähler angezeigt wird."
 
+msgid "Display Index"
+msgstr "Anzeigereihenfolge"
+
+msgid "Controls the order of this view in the map view selector. Lower numbers appear first. Leave blank to sort after numbered views."
+msgstr "Legt die Reihenfolge dieser Ansicht im Kartenauswähler fest. Niedrigere Zahlen erscheinen zuerst. Leer lassen, um nach nummerierten Ansichten einzusortieren."
+
 msgid "Via DocType"
 msgstr "Über DocType"
 
