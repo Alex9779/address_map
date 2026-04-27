@@ -22,8 +22,9 @@ class AddressMapPage {
 
 		this._settings = {};
 		this._views = [];
-		this._view_layers = new Map(); // idx -> L.featureGroup
+		this._view_layers = new Map(); // idx -> L.markerClusterGroup
 		this._view_legends = new Map(); // idx -> legend[]
+		this._mc_assets_loaded = false;
 		this._filter_group_idx = null;
 
 		// Grey icon-only refresh button left of the "…" menu (standard Frappe location)
@@ -39,8 +40,10 @@ class AddressMapPage {
 
 		frappe.call({ method: "address_map.api.get_settings" }).then((r) => {
 			this._settings = r.message || {};
-			this._init_map();
-			this._load_views();
+			this._load_markercluster_assets().then(() => {
+				this._init_map();
+				this._load_views();
+			});
 		});
 	}
 
@@ -328,6 +331,32 @@ ${__("Loading\u2026")}
 `);
 		this.page.main.append(this.$map_wrapper);
 
+	}
+
+	_load_markercluster_assets() {
+		if (this._mc_assets_loaded) return Promise.resolve();
+		const base = "/assets/address_map";
+		// Inject CSS
+		["/css/MarkerCluster.css", "/css/MarkerCluster.Default.css"].forEach((path) => {
+			if (!document.querySelector(`link[href="${base}${path}"]`)) {
+				const link = document.createElement("link");
+				link.rel = "stylesheet";
+				link.href = base + path;
+				document.head.appendChild(link);
+			}
+		});
+		// Load JS
+		if (typeof L !== "undefined" && L.MarkerClusterGroup) {
+			this._mc_assets_loaded = true;
+			return Promise.resolve();
+		}
+		return new Promise((resolve) => {
+			const script = document.createElement("script");
+			script.src = base + "/js/leaflet.markercluster.js";
+			script.onload = () => { this._mc_assets_loaded = true; resolve(); };
+			script.onerror = () => { console.warn("MarkerCluster failed to load"); resolve(); };
+			document.head.appendChild(script);
+		});
 	}
 
 	_init_map() {
@@ -794,7 +823,18 @@ border-radius:2px;
 	_build_marker_layer(geojson, { allow_assign = true, defaultColor = null, defaultShape = null } = {}) {
 		defaultColor = defaultColor || this._settings.default_marker_color || "#3388ff";
 		defaultShape = (defaultShape || this._settings.default_marker_shape || "circle").toLowerCase();
-		const layer = L.featureGroup();
+		// Use markercluster when available: clusters nearby markers (no popup) and
+		// spiderfies exact-same-spot markers so they are individually selectable.
+		const layer = (L.MarkerClusterGroup)
+			? L.markerClusterGroup({
+				showCoverageOnHover: false,
+				maxClusterRadius: 40,
+				spiderfyOnMaxZoom: true,
+				disableClusteringAtZoom: 18,
+				// Remove default popup from cluster clicks — zoom/spiderfy only
+				spiderfyDistanceMultiplier: 1.5,
+			  })
+			: L.featureGroup();
 		const page = this;
 
 		const features = geojson.features || [];
