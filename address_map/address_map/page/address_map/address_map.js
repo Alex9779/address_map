@@ -52,7 +52,7 @@ class AddressMapPage {
 	// ──────────────────────────────────────────────────────────────
 
 	_setup_sidebar() {
-		this._$sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>').appendTo(
+		this._$sidebar = $('<div class="list-sidebar overlay-sidebar"></div>').appendTo(
 			this.page.sidebar.empty(),
 		);
 
@@ -231,9 +231,12 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 
 	_show_or_hide_sidebar() {
 		const show = JSON.parse(localStorage.show_sidebar || "true");
-		this.page.sidebar.toggle(show);
-		// The main section uses `col` (auto-expanding), so hiding the sidebar
-		// automatically lets Bootstrap fill the row — no class changes needed.
+		// On mobile the sidebar is a fixed overlay (handled by Frappe's
+		// setup_overlay_sidebar). Toggling the column would hide the overlay
+		// container and block the slide-in, so skip it on small screens.
+		if (!frappe.utils.is_xs() && !frappe.utils.is_sm()) {
+			this.page.sidebar.toggle(show);
+		}
 		if (this.map) {
 			setTimeout(() => this.map.invalidateSize(), 200);
 		}
@@ -255,12 +258,11 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 			this.filter_group = null;
 		}
 
-		// Re-build the filter selector for the new doctype
-		this.$filter_section.find(".filter-selector").remove();
+		// Re-build the filter selector in the page actions area (before the "…" menu)
+		this.page.menu_btn_group.siblings(".address-map-filter-selector").remove();
 
 		const $filter_selector = $(`
-<div class="filter-selector">
-<div class="btn-group">
+<div class="address-map-filter-selector btn-group">
 <button class="btn btn-default btn-sm filter-button">
 <span class="filter-icon">${frappe.utils.icon("es-line-filter")}</span>
 <span class="button-label hidden-xs">${__("Filter")}</span>
@@ -269,8 +271,7 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 <span class="filter-icon">${frappe.utils.icon("es-small-close")}</span>
 </button>
 </div>
-</div>
-`).appendTo(this.$filter_section);
+`).insertBefore(this.page.menu_btn_group);
 
 		const $filter_button = $filter_selector.find(".filter-button");
 		const $filter_x_button = $filter_selector.find(".filter-x-button");
@@ -319,8 +320,23 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 
 	_setup_map_container() {
 		this.page.main.addClass("frappe-card");
+		// Inject responsive CSS once — fixes map height on mobile and ensures
+		// the overlay sidebar is wide enough on narrow phones.
+		if (!document.getElementById("address-map-responsive-styles")) {
+			const style = document.createElement("style");
+			style.id = "address-map-responsive-styles";
+			style.textContent = [
+				"@media (max-width: 991px) {",
+				"  #address-map-map-wrapper { height: calc(100dvh - 140px) !important; }",
+				"}",
+				"@media (max-width: 767px) {",
+				"  .layout-side-section .overlay-sidebar { width: 80% !important; }",
+				"}",
+			].join("\n");
+			document.head.appendChild(style);
+		}
 		this.$map_wrapper = $(`
-<div style="height:calc(100vh - 185px);width:100%;position:relative;">
+<div id="address-map-map-wrapper" style="height:calc(100vh - 185px);width:100%;position:relative;">
 <div id="address-map-container" style="height:100%;width:100%;"></div>
 <div id="address-map-loading"
 style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
