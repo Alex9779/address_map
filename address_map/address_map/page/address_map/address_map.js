@@ -34,7 +34,6 @@ class AddressMapPage {
 		this.page.add_menu_item(__("Toggle Sidebar"), () => this._toggle_sidebar(), true, "Ctrl+K");
 
 		this._setup_sidebar();
-		this._setup_filter_area();
 		this._setup_map_container();
 		this._show_or_hide_sidebar();
 
@@ -242,16 +241,6 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 		}
 	}
 
-	// ──────────────────────────────────────────────────────────────
-	// Filter area (page_form row, like list view)
-	// ──────────────────────────────────────────────────────────────
-
-	_setup_filter_area() {
-		this.page.page_form.removeClass("row").addClass("flex");
-		this.page.show_form();
-		this.$filter_section = $('<div class="filter-section flex">').appendTo(this.page.page_form);
-	}
-
 	_setup_filter_group(doctype, initial_filters) {
 		if (this.filter_group) {
 			this.filter_group.wrapper && this.filter_group.wrapper.empty();
@@ -275,6 +264,10 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 
 		const $filter_button = $filter_selector.find(".filter-button");
 		const $filter_x_button = $filter_selector.find(".filter-x-button");
+
+		if (!this.$filter_section) {
+			this.$filter_section = $('<div class="filter-section flex" style="display:none;">').appendTo(this.page.page_form);
+		}
 
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.$filter_section,
@@ -319,7 +312,6 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 	// ──────────────────────────────────────────────────────────────
 
 	_setup_map_container() {
-		this.page.main.addClass("frappe-card");
 		// Inject responsive CSS once — fixes map height on mobile and ensures
 		// the overlay sidebar is wide enough on narrow phones.
 		if (!document.getElementById("address-map-responsive-styles")) {
@@ -336,7 +328,7 @@ data-filters="${frappe.utils.escape_html(row.filters || "[]")}">
 			document.head.appendChild(style);
 		}
 		this.$map_wrapper = $(`
-<div id="address-map-map-wrapper" style="height:calc(100vh - 185px);width:100%;position:relative;">
+<div id="address-map-map-wrapper" style="height:calc(100vh - 185px);width:100%;position:relative;border-radius:var(--border-radius-md);overflow:hidden;border:1px solid var(--border-color);">
 <div id="address-map-container" style="height:100%;width:100%;"></div>
 <div id="address-map-loading"
 style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
