@@ -10,6 +10,10 @@ app_license = "GPLv3"
 after_install = "address_map.install.after_install"
 before_uninstall = "address_map.install.before_uninstall"
 
+doctype_js = {
+	"Address": "public/js/address.js",
+}
+
 doc_events = {
 	"Address": {
 		"on_update": "address_map.geocoding.on_address_update",
